@@ -2,7 +2,7 @@ import { Session } from "next-auth";
 import { FunctionComponent, useState } from "react";
 
 interface Props {
-  session: Session & { middlecatToken: string };
+  session: null | (Session & { middlecatToken: string });
 }
 
 const Demo: FunctionComponent<Props> = ({ session }) => {
