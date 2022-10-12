@@ -61,7 +61,7 @@ export default function IndexPage() {
           )}
         </div>
       </div>
-      {session?.user && <Demo session={session} />}
+      {<Demo session={session} />}
     </div>
   );
 }

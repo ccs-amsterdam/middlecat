@@ -8,7 +8,7 @@ interface Props {
 const Demo: FunctionComponent<Props> = ({ session }) => {
   return (
     <div className="Demo">
-      <Token token={session.middlecatToken} />
+      <Token token={session?.middlecatToken || ""} />
       <PublicKey />
     </div>
   );
