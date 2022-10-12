@@ -1,8 +1,5 @@
 [build.environment]
-  VARIABLE = "value"
   NEXTAUTH_URL = "https://middlecat.netlify.app"
   NEXT_PUBLIC_PUBLICKEY ="-----BEGIN PUBLIC KEY-----\nMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA5uTwXQXi4ugwkScdEojo\nMhq6OAqNkd2p195je8A9NpaFVa1v6+X42xHXUoiG8kLNxwLH8CbjI87HLcURAVsq\nnsN7gNet92oxGIt8GGH1qAnBylgrdlF55N3EGJw9mg7BceRi/mLTQZvoY/YXM2nq\npI96+4RKZGkFGpcwkq2Vf4W0vTfHZ0G3eUXEtd+3/oZT9eOqimHjW/3N5FXMEScq\noNo7jXNeJjsmAtrGeBImqn7Vcj29iiov/oEuj90LQNiZxXP8FB5sulBj9+C0/fOp\nMvd21Mgt7UlGBNfkDNCbK7NJfWVVCFlsktlLnRJj3F4usGkftHpj3Btbrl+CE+GW\n08Lbo+oLN9HldskjcA5OGmHZEoKMVdQsxqLrrIVPQMCatb+hyrQQmi+rzWWOKiYJ\nJvs+syq9qL8He80bhSWHCuuBuBvNx88EBq6LUDxqmnYgQZ5uPRonhxDz9wSNOVGr\nBgQHZEFdXNRKfG5V90oEfs+Hr+naZZp9tfTtdjBjBwOwfZ1NkbL/hHSuZ2VGWQMm\nJXPE5cWeT/veiJtH1+3F33h43+jMo/CQ3QCINhSctq7jjvJfCMs+OAcAzj4gcZ9w\nBS88bkbB/o5l4uC8bnqK7Tklg4b8V28xWMsNcYaPg5NNVyV0dS2p6bwKiGyzhC/k\npyaThGkh5SFHN98wHzCITw8CAwEAAQ==\n-----END PUBLIC KEY-----\n"
-  GITHUB_ID = "Iv1.2b09fac082cfd831"
-  GOOGLE_ID = "263040749059-mfp9ta2sv7ltia00viqgid0e5agdfdat.apps.googleusercontent.com"
   EMAIL_FROM = "MiddleCat <noreply@middlecat.com>"
 
