@@ -1,0 +1,26 @@
+{
+  "name": "middlecat",
+  "description": "A lightweight client for authenticating AmCAT users",
+  "repository": "https://github.com/ccs-amsterdam/middlecat",
+  "homepage": "https://middlecat.netlify.app",
+  "scripts": {
+    "dev": "next",
+    "build": "next build",
+    "start": "next start"
+  },
+  "author": "Kasper Welbers <kasperwelbers@gmail.com>",
+  "dependencies": {
+    "@types/jsonwebtoken": "^8.5.9",
+    "jsonwebtoken": "^8.5.1",
+    "next": "latest",
+    "next-auth": "latest",
+    "nodemailer": "^6.8.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^17",
+    "@types/react": "^18.0.15",
+    "typescript": "^4"
+  }
+}

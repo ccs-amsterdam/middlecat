@@ -1,0 +1,107 @@
+:root {
+  --primary: #0d85ca;
+  --primary-light: #6ca7c9;
+  --secondary: #212121;
+}
+
+#__next {
+  width: 100%;
+}
+
+html {
+  box-sizing: border-box;
+  font-size: 62.5%;
+  min-height: 100%;
+  background: var(--primary-light);
+}
+
+.Container {
+  box-sizing: border-box;
+  position: relative;
+  display: grid;
+  padding: 1rem;
+  width: 100%;
+}
+
+.Container h1,
+h2,
+h3,
+h4 {
+  text-align: center;
+}
+
+.Intro {
+  width: 100%;
+  margin: auto;
+  font-size: 2rem;
+  overflow: auto;
+}
+
+.Login {
+  width: 100%;
+  margin-top: 5rem;
+  text-align: center;
+}
+
+button {
+  padding: 1rem 2rem;
+  margin: 2px;
+  border-radius: 10px;
+  box-shadow: 1px 1px 5px;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+button:hover {
+  color: white;
+  background: var(--primary);
+}
+
+.JSON {
+  font-size: 2rem;
+  text-align: left;
+  background: white;
+  border-radius: 5px;
+  max-width: min-content;
+  margin: auto;
+}
+
+.JSON pre {
+  max-width: 100%;
+  font-family: monospace;
+  padding: 1rem;
+  overflow: auto;
+}
+
+.Demo {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 2rem;
+  font-size: 2rem;
+  margin-top: 3rem;
+  overflow: auto;
+  font-size: 1.2rem;
+}
+.Keys {
+  overflow: auto;
+  padding: 2rem;
+  width: 100%;
+  text-align: center;
+}
+.Token {
+  padding: 2rem;
+  overflow: auto;
+  text-align: left;
+  width: 100%;
+  max-width: 100%;
+}
+
+.Key {
+  word-break: break-all;
+  overflow: auto;
+  font-size: 1.2rem;
+  font-family: monospace;
+  overflow: auto;
+  padding: 2rem;
+  border: 1px solid white;
+}
