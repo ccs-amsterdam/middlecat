@@ -6,6 +6,8 @@ interface MiddlecatUser {
   image: string;
 }
 
+// can only be called server-side (from api endpoints)
+
 export default function createJWT(user: MiddlecatUser) {
   const privateKey: Secret = process.env.PRIVATEKEY || "";
   if (!privateKey || !user?.email) return "";

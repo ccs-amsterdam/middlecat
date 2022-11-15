@@ -60,19 +60,7 @@ export const authOptions: NextAuthOptions = {
   theme: {
     colorScheme: "light",
   },
-  callbacks: {
-    async session({ session }) {
-      // We compute the MiddleCat token on login and add it to session.
-      // This contains the user information, signed with the private key
-      const user = {
-        email: session?.user?.email || "",
-        name: session?.user?.name || "",
-        image: session?.user?.image || "",
-      };
-      session.middlecatToken = createJWT(user);
-      return session;
-    },
-  },
+  callbacks: {},
 };
 
 export default NextAuth(authOptions);
