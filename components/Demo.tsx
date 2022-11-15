@@ -1,14 +1,32 @@
 import { Session } from "next-auth";
-import { FunctionComponent, useState } from "react";
+import { FunctionComponent, useEffect, useState } from "react";
 
 interface Props {
   session: null | (Session & { middlecatToken: string });
 }
 
 const Demo: FunctionComponent<Props> = ({ session }) => {
+  const [token, setToken] = useState("");
+
+  useEffect(() => {
+    if (session) {
+      fetch(`/api/server_token?server=${"demo"}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setToken(data.token);
+        })
+        .catch((e) => {
+          console.error(e);
+          setToken("");
+        });
+    } else {
+      setToken("");
+    }
+  }, [session]);
+
   return (
     <div className="Demo">
-      <Token token={session?.middlecatToken || ""} />
+      <Token token={token} />
       <PublicKey />
     </div>
   );

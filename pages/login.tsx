@@ -8,15 +8,17 @@ export default function IndexPage() {
 
   useEffect(() => {
     if (status === "loading") return;
+    console.log(router);
     const client = router?.query?.client;
     const server = router?.query?.server;
 
+    console.log(client);
     if (client && server) {
       if (session) {
         fetch(`/api/server_token?server=${server}`)
           .then((res) => res.json())
           .then((data) => {
-            window.location.href = `${server}?client=${client}&token=${data.token}`;
+            window.location.href = `${server}/middlecat/token?client=${client}&token=${data.token}`;
           })
           .catch((e) => {
             console.error(e);
