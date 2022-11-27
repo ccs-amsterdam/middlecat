@@ -6,10 +6,13 @@
   "scripts": {
     "dev": "next",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "migrate": "npx prisma migrate dev"
   },
   "author": "Kasper Welbers <kasperwelbers@gmail.com>",
   "dependencies": {
+    "@next-auth/prisma-adapter": "^1.0.5",
+    "@prisma/client": "^4.6.1",
     "@types/jsonwebtoken": "^8.5.9",
     "jsonwebtoken": "^8.5.1",
     "next": "latest",
@@ -21,6 +24,7 @@
   "devDependencies": {
     "@types/node": "^17",
     "@types/react": "^18.0.15",
+    "prisma": "^4.6.1",
     "typescript": "^4"
   }
 }

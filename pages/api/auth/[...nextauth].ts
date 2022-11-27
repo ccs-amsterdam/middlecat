@@ -1,44 +1,26 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import prisma from "../../../util/prismadb";
+
 import GoogleProvider from "next-auth/providers/google";
-import FacebookProvider from "next-auth/providers/facebook";
 import GithubProvider from "next-auth/providers/github";
 import EmailProvider from "next-auth/providers/email";
-import TwitterProvider from "next-auth/providers/twitter";
-import Auth0Provider from "next-auth/providers/auth0";
-import createJWT from "../../../util/createJWT";
+
 // import AppleProvider from "next-auth/providers/apple"
 // import EmailProvider from "next-auth/providers/email"
 
 // For more information on each option (and a full list of options) go to
 // https://next-auth.js.org/configuration/options
 export const authOptions: NextAuthOptions = {
-  // https://next-auth.js.org/configuration/providers/oauth
+  adapter: PrismaAdapter(prisma),
   providers: [
-    /* EmailProvider({
-         server: process.env.EMAIL_SERVER,
-         from: process.env.EMAIL_FROM,
-       }),
-    // Temporarily removing the Apple provider from the demo site as the
-    // callback URL for it needs updating due to Vercel changing domains
-
-    Providers.Apple({
-      clientId: process.env.APPLE_ID,
-      clientSecret: {
-        appleId: process.env.APPLE_ID,
-        teamId: process.env.APPLE_TEAM_ID,
-        privateKey: process.env.APPLE_PRIVATE_KEY,
-        keyId: process.env.APPLE_KEY_ID,
-      },
+    // WE SHOULD ONLY ADD PROVIDERS WHERE EMAIL IS GUARENTEED TO BE VERIFIED.
+    // THIS IS NOT IN THE OAUTH2 PROTOCOL, SO THERE CAN BE PROVIDERS WHERE
+    // USERS CAN REGISTER AN EMAIL ADDRESS THAT IS NOT THEIRS.
+    EmailProvider({
+      server: process.env.EMAIL_SERVER,
+      from: process.env.EMAIL_FROM,
     }),
-    */
-    // FacebookProvider({
-    //   clientId: process.env.FACEBOOK_ID,
-    //   clientSecret: process.env.FACEBOOK_SECRET,
-    // }),
-    // EmailProvider({
-    //   server: process.env.EMAIL_SERVER,
-    //   from: process.env.EMAIL_FROM,
-    // }),
     GithubProvider({
       clientId: process.env.GITHUB_ID,
       clientSecret: process.env.GITHUB_SECRET,
@@ -47,20 +29,90 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GOOGLE_ID,
       clientSecret: process.env.GOOGLE_SECRET,
     }),
-    // TwitterProvider({
-    //   clientId: process.env.TWITTER_ID,
-    //   clientSecret: process.env.TWITTER_SECRET,
-    // }),
-    // Auth0Provider({
-    //   clientId: process.env.AUTH0_ID,
-    //   clientSecret: process.env.AUTH0_SECRET,
-    //   issuer: process.env.AUTH0_ISSUER,
-    // }),
   ],
   theme: {
     colorScheme: "light",
   },
-  callbacks: {},
+  callbacks: {
+    async signIn({ user, account }) {
+      // Force linking of accounts with the same email address. Based on:
+      //   https://github.com/danyel117/wanda/blob/main/pages/api/auth/%5B...nextauth%5D.ts
+
+      // if the email was not provided, return false
+      if (!user.email) return false;
+
+      // !! ADD CHECK FOR WHETHER PROVIDER SAYS EMAIL IS NOT VERIFIED
+      // (or only include providers that always do)
+
+      // if account provider is email, always let true (this isn't blocked by nextauth)
+      if (account.provider === "email") return true;
+
+      // fetch the account of the user
+      const existingAccount = await prisma.account.findFirst({
+        where: {
+          providerAccountId: account.providerAccountId,
+        },
+      });
+
+      // if the account exists, let it through
+      if (existingAccount) {
+        return true;
+      }
+
+      // get the user
+      const existingUser = await prisma.user.findFirst({
+        where: { email: user.email },
+      });
+
+      // if the user exists but it does not have accounts, create the account and let it through
+      if (existingUser) {
+        await prisma.account.create({
+          data: {
+            provider: account.provider,
+            type: account.type,
+            providerAccountId: account.providerAccountId,
+            access_token: account.access_token,
+            expires_at: account.expires_at,
+            scope: account.scope,
+            token_type: account.token_type,
+            id_token: account.id_token,
+            user: {
+              connect: {
+                email: user.email ?? "",
+              },
+            },
+          },
+        });
+        return true;
+      }
+
+      // if the user doesn't exist, create the user, create the account and let it through
+      try {
+        await prisma.user.create({
+          data: {
+            email: user.email,
+            name: user.name,
+            image: user.image,
+            accounts: {
+              create: {
+                provider: account.provider,
+                type: account.type,
+                providerAccountId: account.providerAccountId,
+                access_token: account.access_token,
+                expires_at: account.expires_at,
+                scope: account.scope,
+                token_type: account.token_type,
+                id_token: account.id_token,
+              },
+            },
+          },
+        });
+        return true;
+      } catch {
+        return false;
+      }
+    },
+  },
 };
 
 export default NextAuth(authOptions);
