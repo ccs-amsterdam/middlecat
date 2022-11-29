@@ -13,14 +13,13 @@ import EmailProvider from "next-auth/providers/email";
 // https://next-auth.js.org/configuration/options
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
+  // pages: {
+  //   signIn: "signin",
+  // },
   providers: [
-    // WE SHOULD ONLY ADD PROVIDERS WHERE EMAIL IS GUARENTEED TO BE VERIFIED.
+    // WE SHOULD ONLY ADD OAUTH2 PROVIDERS WHERE EMAIL IS GUARENTEED TO BE VERIFIED.
     // THIS IS NOT IN THE OAUTH2 PROTOCOL, SO THERE CAN BE PROVIDERS WHERE
     // USERS CAN REGISTER AN EMAIL ADDRESS THAT IS NOT THEIRS.
-    EmailProvider({
-      server: process.env.EMAIL_SERVER,
-      from: process.env.EMAIL_FROM,
-    }),
     GithubProvider({
       clientId: process.env.GITHUB_ID,
       clientSecret: process.env.GITHUB_SECRET,
@@ -28,6 +27,10 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_ID,
       clientSecret: process.env.GOOGLE_SECRET,
+    }),
+    EmailProvider({
+      server: process.env.EMAIL_SERVER,
+      from: process.env.EMAIL_FROM,
     }),
   ],
   theme: {
@@ -55,27 +58,29 @@ export const authOptions: NextAuthOptions = {
       });
 
       // if the account exists, let it through
-      if (existingAccount) {
-        return true;
-      }
+      if (existingAccount) return true;
 
       // get the user
       const existingUser = await prisma.user.findFirst({
         where: { email: user.email },
       });
 
+      const newAccount = {
+        provider: account.provider,
+        type: account.type,
+        providerAccountId: account.providerAccountId,
+        access_token: account.access_token,
+        expires_at: account.expires_at,
+        scope: account.scope,
+        token_type: account.token_type,
+        id_token: account.id_token,
+      };
+
       // if the user exists but it does not have accounts, create the account and let it through
       if (existingUser) {
         await prisma.account.create({
           data: {
-            provider: account.provider,
-            type: account.type,
-            providerAccountId: account.providerAccountId,
-            access_token: account.access_token,
-            expires_at: account.expires_at,
-            scope: account.scope,
-            token_type: account.token_type,
-            id_token: account.id_token,
+            ...newAccount,
             user: {
               connect: {
                 email: user.email ?? "",
@@ -94,16 +99,7 @@ export const authOptions: NextAuthOptions = {
             name: user.name,
             image: user.image,
             accounts: {
-              create: {
-                provider: account.provider,
-                type: account.type,
-                providerAccountId: account.providerAccountId,
-                access_token: account.access_token,
-                expires_at: account.expires_at,
-                scope: account.scope,
-                token_type: account.token_type,
-                id_token: account.id_token,
-              },
+              create: newAccount,
             },
           },
         });

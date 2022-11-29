@@ -44,6 +44,7 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
+  amcatSessions AmcatSession[]
 }
 
 model VerificationToken {
@@ -52,4 +53,42 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+
+// Users can start an AmCAT session using an oauth2 + PKCE flow.
+// Once the flow is completed, they receive a short lived access_token
+// and long lived rotating refresh token. The access token is a JWT,
+// and can be validated by the AmCAT resource.
+// 
+// expired sessions are automatically removed when a new session is created
+// or a refresh token is used.
+model AmcatSession {
+  id              String    @id @default(cuid())
+  userId          String
+  clientId        String                 // id of client, generally the url host
+  resource        String                 // The specific AmCAT service + server 
+  expires         DateTime               // session expiration date
+  secret          String    @db.Text     // authorization code = id + '.' + secret. 
+  secretExpires   DateTime                 // secret code expiration date
+  secretUsed      Boolean   @default(false) // secret code can only be used once. we stop the session if used twice to catch malicious reuse 
+  codeChallenge   String    @db.Text     // PKCE code challenge for authorization code grant
+  refreshTokens   AmcatRefreshToken[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// refresh tokens are tied to sessions and rotated.
+// as the refresh token we use: id + '.' + secret
+// when a refresh token is used, a new row is created
+// and the old one is invalidated but kept to catch malicious reuse.
+// When a invalidated token is used we close the entire session.
+// (note that refresh tokens re deleted when the session expires)
+model AmcatRefreshToken {
+  id               String    @id @default(cuid())
+  amcatsessionId   String
+  secret           String    @db.Text
+  invalid          Boolean   @default(false)   
+     
+  amcatsession     AmcatSession     @relation(fields: [amcatsessionId], references: [id], onDelete: Cascade)
 }

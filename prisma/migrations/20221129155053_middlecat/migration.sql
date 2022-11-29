@@ -44,6 +44,32 @@ CREATE TABLE "VerificationToken" (
     "expires" TIMESTAMP(3) NOT NULL
 );
 
+-- CreateTable
+CREATE TABLE "AmcatSession" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "clientId" TEXT NOT NULL,
+    "resource" TEXT NOT NULL,
+    "expires" TIMESTAMP(3) NOT NULL,
+    "secret" TEXT NOT NULL,
+    "codeChallenge" TEXT NOT NULL,
+    "redirectUri" TEXT NOT NULL,
+    "secretExpires" TIMESTAMP(3) NOT NULL,
+    "secretUsed" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "AmcatSession_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "AmcatRefreshToken" (
+    "id" TEXT NOT NULL,
+    "amcatsessionId" TEXT NOT NULL,
+    "secret" TEXT NOT NULL,
+    "invalid" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "AmcatRefreshToken_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Account_provider_providerAccountId_key" ON "Account"("provider", "providerAccountId");
 
@@ -64,3 +90,9 @@ ALTER TABLE "Account" ADD CONSTRAINT "Account_userId_fkey" FOREIGN KEY ("userId"
 
 -- AddForeignKey
 ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AmcatSession" ADD CONSTRAINT "AmcatSession_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AmcatRefreshToken" ADD CONSTRAINT "AmcatRefreshToken_amcatsessionId_fkey" FOREIGN KEY ("amcatsessionId") REFERENCES "AmcatSession"("id") ON DELETE CASCADE ON UPDATE CASCADE;

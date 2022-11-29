@@ -15,9 +15,12 @@
     "@prisma/client": "^4.6.1",
     "@types/jsonwebtoken": "^8.5.9",
     "jsonwebtoken": "^8.5.1",
+    "jwt-decode": "^3.1.2",
     "next": "latest",
     "next-auth": "latest",
+    "nextjs-cors": "^2.1.2",
     "nodemailer": "^6.8.0",
+    "pkce-challenge": "^3.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

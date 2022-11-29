@@ -1,6 +1,8 @@
 import jwt, { SignOptions, Secret } from "jsonwebtoken";
 
-interface MiddlecatUser {
+interface AccessTokenPayload {
+  clientId: string;
+  resource: string;
   email: string;
   name: string;
   image: string;
@@ -8,14 +10,16 @@ interface MiddlecatUser {
 
 // can only be called server-side (from api endpoints)
 
-export default function createJWT(user: MiddlecatUser) {
-  const privateKey: Secret = process.env.PRIVATEKEY || "";
-  if (!privateKey || !user?.email) return "";
+export function createAccessToken(payload: AccessTokenPayload) {
+  return createJWT(payload, "1h");
+}
 
-  const payload = { ...user };
+function createJWT(payload: Record<string, any>, expiresIn: string = "1h") {
+  const privateKey: Secret = process.env.PRIVATEKEY || "";
+  if (!privateKey || !payload) return "";
 
   const signOptions: SignOptions = {
-    //expiresIn:  "12h",
+    expiresIn,
     algorithm: "RS256",
   };
 
