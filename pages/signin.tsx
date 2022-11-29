@@ -1,37 +1,97 @@
-import { providers, signIn, getSession, csrfToken } from "next-auth/client";
+import {
+  getCsrfToken,
+  getProviders,
+  getSession,
+  signIn,
+  useSession,
+} from "next-auth/react";
+import { useRouter } from "next/router";
+import { useEffect } from "react";
+import { FaEnvelope, FaGithub, FaGoogle } from "react-icons/fa";
 
-function signin({ providers, csrfToken }) {
+const logos = {
+  GitHub: <FaGithub />,
+  Google: <FaGoogle />,
+};
+
+interface Props {
+  providers: any;
+  csrfToken: string | undefined;
+}
+
+export default function SignIn({ providers, csrfToken }: Props) {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === "loading") return;
+    if (session && router.query.callbackUrl) {
+      router.push(router.query.callbackUrl);
+    }
+  }, [status, session, router]);
+
   return (
-    <div>
-      {Object.values(providers).map((provider) => {
-        return (
-          <div key={provider.name}>
-            <button onClick={() => signIn(provider.id)}>
-              Sign in with {provider.name}
-            </button>
-          </div>
-        );
-      })}
+    <div className="Page">
+      <div className="Container">
+        <div>
+          <h1 className="Title">MiddleCat</h1>
+          {status === "loading" ? (
+            <div className="Loader" />
+          ) : (
+            <Providers providers={providers} csrfToken={csrfToken} />
+          )}
+        </div>
+      </div>
     </div>
   );
 }
 
-export default signin;
+function Providers({ providers, csrfToken }: Props) {
+  return (
+    <>
+      <span>Connect via</span>
+      {Object.values(providers).map((provider) => {
+        if (provider.type === "email") return null;
+        return (
+          <div className="Provider" key={provider.name}>
+            <button onClick={() => signIn(provider.id)}>
+              <div className="Logo">{logos[provider.name]}</div>
+              {provider.name}
+            </button>
+          </div>
+        );
+      })}
+      <div className="Divider">
+        <div>OR</div>
+      </div>
+      {Object.values(providers).map((provider) => {
+        if (provider.type !== "email") return null;
+
+        return (
+          <form
+            key="passwordform"
+            className="PasswordForm"
+            method="post"
+            action="/api/auth/signin/email"
+          >
+            <input name="csrfToken" type="hidden" defaultValue={csrfToken} />
+
+            <div className="EmailInput">
+              <FaEnvelope />
+              <input type="email" id="email" name="email" />
+            </div>
+            <button type="submit">Sign in with Email</button>
+          </form>
+        );
+      })}
+    </>
+  );
+}
 
 export async function getServerSideProps(context) {
-  const { req } = context;
-  const session = await getSession({ req });
-
-  if (session) {
-    return {
-      redirect: { destination: "/" },
-    };
-  }
-
+  const providers = await getProviders();
+  const csrfToken = await getCsrfToken();
   return {
-    props: {
-      providers: await providers(context),
-      csrfToken: await csrfToken(context),
-    },
+    props: { providers, csrfToken },
   };
 }

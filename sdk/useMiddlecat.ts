@@ -22,11 +22,7 @@ export default function useMiddlecat(amcatHost: string) {
 
   function logout() {
     if (!user) return;
-    setUser(null);
-  }
 
-  function logoutMiddlecat() {
-    if (!user) return;
     fetch(`${user.middlecat}/logout?redirect_uri=${window.location.href}`);
     setUser(null);
   }
@@ -36,7 +32,7 @@ export default function useMiddlecat(amcatHost: string) {
     oauthMiddlecat(amcatHost, setUser);
   }, [user]);
 
-  return [user, setUser];
+  return [user, logout];
 }
 
 async function oauthMiddlecat(

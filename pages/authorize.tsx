@@ -1,6 +1,6 @@
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import createClientID from "../util/createClientID";
 
 export default function IndexPage() {
@@ -8,8 +8,10 @@ export default function IndexPage() {
   const [msg, setMsg] = useState("");
   const router = useRouter();
 
-  useEffect(() => {
-    if (status === "loading") return;
+  if (status !== "loading" && !session) signIn();
+
+  const acceptToken = useCallback(() => {
+    if (status === "loading" || !session) return;
 
     const q = router.query;
     if (!q.redirect_uri || !q.state || !q.code_challenge || !q.resource) {
@@ -17,15 +19,10 @@ export default function IndexPage() {
       return;
     }
 
-    if (!session) {
-      signIn();
-      return; // remove the url parameters
-    }
-
-    // if we have a MiddleCat session, we can create an AmCAT session
     createAmcatSession(q.redirect_uri, q.resource, q.state, q.code_challenge)
       .then((response_url) => {
-        window.location.href = response_url;
+        router.push(response_url);
+        //window.location.href = response_url;
       })
       .catch((e) => {
         console.error(e);
@@ -33,8 +30,37 @@ export default function IndexPage() {
       });
   }, [router, session, status]);
 
-  if (status === "loading") return <div>Loading</div>;
-  return <div>{msg}</div>;
+  useEffect(() => {
+    // here implement call to server to see if client is trusted.
+    // if so, can immediately accept
+    acceptToken();
+  });
+
+  const render = () => {
+    const q = router.query;
+    if (!q.redirect_uri || !q.state || !q.code_challenge || !q.resource) {
+      return <div>Invalid request</div>;
+    }
+
+    if (session === "loading") return <div className="Loader" />;
+
+    return <button></button>;
+  };
+
+  // would be cool to also list active sessions on this page, and
+  // allow users to open or close them. Add notification that there
+  // can be a 30 minute delay when closing a session that is currently active
+
+  return (
+    <div className="Page">
+      <div className="Container">
+        <div>
+          <h1 className="Title">MiddleCat</h1>
+          {status === "loading" ? <div className="Loader" /> : msg}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 /**

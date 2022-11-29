@@ -8,12 +8,154 @@
   width: 100%;
 }
 
+* {
+  box-sizing: border-box;
+}
+
 html {
   box-sizing: border-box;
   font-size: 62.5%;
   min-height: 100%;
 }
 
+.Page {
+  font-size: 18px;
+  display: flex;
+  min-height: 75vh;
+}
+
+.Page .Container {
+  margin: auto;
+  width: 100%;
+  max-width: 400px;
+  backdrop-filter: blur(3px);
+  border-radius: 10px;
+  position: relative;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.Page .Title {
+  color: var(--primary);
+  font-size: 3.5rem;
+  margin-bottom: 3rem;
+}
+
+.Page .FormBox {
+  flex: 1 1 auto;
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  overflow: auto;
+}
+
+.PasswordForm {
+  display: flex;
+  flex-direction: column;
+  margin: 1rem;
+}
+
+.EmailInput {
+  position: relative;
+}
+
+.EmailInput input {
+  margin: 1rem 0rem;
+  width: 100%;
+  border-radius: 5px;
+  height: 40px;
+  padding: 10px 10px 10px 50px;
+  font-size: inherit;
+}
+
+.EmailInput svg {
+  color: var(--secondary);
+  font-size: 2rem;
+  position: absolute;
+  left: 10px;
+  top: 20px;
+}
+
+.Page .Divider {
+  display: flex;
+  position: relative;
+  margin: 2rem 10px;
+  z-index: 2;
+}
+
+.Page .Divider div {
+  margin: auto;
+  background: white;
+  z-index: 2;
+  padding: 0rem 1rem;
+}
+
+.Page .Divider::after {
+  content: "";
+  position: absolute;
+  bottom: 1rem;
+  left: 0;
+  width: 100%;
+  z-index: 1;
+  border-bottom: 2px solid var(--primary);
+}
+
+.Provider {
+  margin: 1rem;
+}
+
+/* .Provider button {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  font-size: 2rem;
+} */
+
+.Logo {
+  font-size: 3rem;
+  padding: 0rem 1rem;
+}
+
+button {
+  width: 100%;
+  background: white;
+  border: 2px solid var(--primary);
+  font-size: inherit;
+  max-width: 400px;
+  margin: 0;
+  padding: 1rem 2rem;
+  margin: 2px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+button:hover {
+  color: white;
+  background: var(--primary);
+}
+
+.Loader {
+  margin: auto;
+  border: 10px solid #f3f3f3;
+  border-top: 10px solid #3498db;
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* From hereon mostly stuff from the demo page. Should be removed at some point */
 .Container {
   box-sizing: border-box;
   position: relative;
@@ -40,19 +182,6 @@ h4 {
   width: 100%;
   margin-top: 5rem;
   text-align: center;
-}
-
-button {
-  padding: 1rem 2rem;
-  margin: 2px;
-  border-radius: 10px;
-  box-shadow: 1px 1px 5px;
-  font-size: 1.5rem;
-  cursor: pointer;
-}
-button:hover {
-  color: white;
-  background: var(--primary);
 }
 
 .JSON {

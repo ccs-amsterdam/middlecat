@@ -13,9 +13,9 @@ import EmailProvider from "next-auth/providers/email";
 // https://next-auth.js.org/configuration/options
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
-  // pages: {
-  //   signIn: "signin",
-  // },
+  pages: {
+    signIn: "/signin",
+  },
   providers: [
     // WE SHOULD ONLY ADD OAUTH2 PROVIDERS WHERE EMAIL IS GUARENTEED TO BE VERIFIED.
     // THIS IS NOT IN THE OAUTH2 PROTOCOL, SO THERE CAN BE PROVIDERS WHERE
@@ -37,6 +37,13 @@ export const authOptions: NextAuthOptions = {
     colorScheme: "light",
   },
   callbacks: {
+    async session({ session, user }) {
+      const s = await prisma.session.findFirst({
+        where: { sessionToken: user.sessionToken },
+      });
+      session.id = s.id;
+      return session;
+    },
     async signIn({ user, account }) {
       // Force linking of accounts with the same email address. Based on:
       //   https://github.com/danyel117/wanda/blob/main/pages/api/auth/%5B...nextauth%5D.ts

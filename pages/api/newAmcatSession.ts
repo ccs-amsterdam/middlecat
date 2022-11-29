@@ -16,14 +16,14 @@ export default async function handler(
   }
 
   const session = await unstable_getServerSession(req, res, authOptions);
+
   if (!session?.user?.email) {
     res.status(403).send("Need to be signed in");
     return;
   }
 
-  const { clientId, resource, state, codeChallenge, redirectUri } =
-    req.body || {};
-  if (!clientId || !resource || !state || !codeChallenge || !redirectUri) {
+  const { clientId, resource, state, codeChallenge } = req.body || {};
+  if (!clientId || !resource || !state || !codeChallenge) {
     res.status(404).send("Invalid request");
     return;
   }
@@ -53,13 +53,13 @@ export default async function handler(
   const amcatsession = await prisma.AmcatSession.create({
     data: {
       userId,
+      sessionId: session.id,
       clientId,
       resource,
       expires: new Date(
         Date.now() + 1000 * 60 * 60 * 24 * MAX_SESSION_DURATION_DAYS
       ),
       codeChallenge,
-      redirectUri,
       secret: randomBytes(64).toString("hex"),
       secretExpires: new Date(Date.now() + 1000 * 60 * 10), // 10 minutes
     },
