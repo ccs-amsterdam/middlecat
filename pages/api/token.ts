@@ -131,12 +131,17 @@ async function createTokens(
   const { email, name, image } = session.user;
   const middlecat = `https://${req.headers.host}`;
 
+  // expire 30 minutes from now
+  //const exp = Math.floor(Date.now() / 1000) + 60 * 30;
+  const exp = Math.floor(Date.now() / 1000) + 60 * 30;
+
   const access_token = createAccessToken({
     clientId,
     resource,
     email,
     name,
     image,
+    exp,
     middlecat,
   });
 
@@ -148,8 +153,9 @@ async function createTokens(
   });
   const refresh_token = art.id + "." + art.secret;
 
-  // amcatUser is just for the frontend, so we don't have
-  // to decode the token
-  const amcat_user = { host: resource, email, name, image, middlecat };
+  // All the amcat_user stuff is also in the token, but it seems properly decoding the
+  // base64 in client side js is non-trivial. For the client it doesn't have
+  // to be super safe, so we just include it directly
+  const amcat_user = { host: resource, email, name, image, exp, middlecat };
   res.status(200).json({ amcat_user, access_token, refresh_token });
 }

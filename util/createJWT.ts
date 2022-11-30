@@ -11,15 +11,14 @@ interface AccessTokenPayload {
 // can only be called server-side (from api endpoints)
 
 export function createAccessToken(payload: AccessTokenPayload) {
-  return createJWT(payload, "1h");
+  return createJWT(payload);
 }
 
-function createJWT(payload: Record<string, any>, expiresIn: string = "1h") {
+function createJWT(payload: Record<string, any>) {
   const privateKey: Secret = process.env.PRIVATEKEY || "";
   if (!privateKey || !payload) return "";
 
   const signOptions: SignOptions = {
-    expiresIn,
     algorithm: "RS256",
   };
 

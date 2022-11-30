@@ -87,7 +87,7 @@ model AmcatSession {
 // when a refresh token is used, a new row is created
 // and the old one is invalidated but kept to catch malicious reuse.
 // When a invalidated token is used we close the entire session.
-// (note that refresh tokens re deleted when the session expires)
+// (note that refresh tokens are deleted when the session expires or is invalided)
 model AmcatRefreshToken {
   id               String    @id @default(cuid())
   amcatsessionId   String

@@ -14,6 +14,7 @@ export default function IndexPage() {
     if (status === "loading" || !session) return;
 
     const q = router.query;
+    console.log(q);
     if (!q.redirect_uri || !q.state || !q.code_challenge || !q.resource) {
       setMsg("Noooooooo invalid request");
       return;
@@ -54,10 +55,7 @@ export default function IndexPage() {
   return (
     <div className="Page">
       <div className="Container">
-        <div>
-          <h1 className="Title">MiddleCat</h1>
-          {status === "loading" ? <div className="Loader" /> : msg}
-        </div>
+        <div>{status === "loading" ? <div className="Loader" /> : msg}</div>
       </div>
     </div>
   );

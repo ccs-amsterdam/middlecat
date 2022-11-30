@@ -37,9 +37,13 @@ export const authOptions: NextAuthOptions = {
     colorScheme: "light",
   },
   callbacks: {
-    async session({ session, user }) {
+    async session({ session, user, token }) {
+      // We need the session id, so that we can link AmcatSession to
+      // MiddleCat session. This way, when a user logs out of Middlecat,
+      // the AmcatSessions are also cleared. NextAuth doesn't give us
+      // the id, but we can look it up with the userId + expires values
       const s = await prisma.session.findFirst({
-        where: { sessionToken: user.sessionToken },
+        where: { userId: user.id, expires: session.expires },
       });
       session.id = s.id;
       return session;
