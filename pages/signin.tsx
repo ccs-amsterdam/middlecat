@@ -61,36 +61,45 @@ function Providers({ providers, csrfToken }: Props) {
           </div>
         );
       })}
-      <div className="Divider">
-        <div>OR</div>
-      </div>
-      {Object.values(providers).map((provider) => {
-        if (provider.type !== "email") return null;
-
-        return (
-          <form
-            key="passwordform"
-            className="PasswordForm"
-            method="post"
-            action="/api/auth/signin/email"
-          >
-            <input name="csrfToken" type="hidden" defaultValue={csrfToken} />
-
-            <div className="EmailInput">
-              <FaEnvelope />
-              <input type="email" id="email" name="email" />
-            </div>
-            <button type="submit">Sign in with Email</button>
-          </form>
-        );
-      })}
+      {providers.email && Object.values(providers).length > 1 && (
+        <div className="Divider">
+          <div>OR</div>
+        </div>
+      )}
+      {providers.email && <EmailLogin csrfToken={csrfToken} />}
     </>
+  );
+}
+
+function EmailLogin({ csrfToken }: { csrfToken: string }) {
+  const router = useRouter();
+  console.log(router);
+
+  return (
+    <form
+      key="passwordform"
+      className="PasswordForm"
+      method="post"
+      action="/api/auth/signin/email"
+    >
+      <input name="csrfToken" type="hidden" defaultValue={csrfToken} />
+      <div className="EmailInput">
+        <FaEnvelope />
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="example@email.com"
+        />
+      </div>
+      <button type="submit">Sign in with Email</button>
+    </form>
   );
 }
 
 export async function getServerSideProps(context) {
   const providers = await getProviders();
-  const csrfToken = await getCsrfToken();
+  const csrfToken = await getCsrfToken(context);
   return {
     props: { providers, csrfToken },
   };

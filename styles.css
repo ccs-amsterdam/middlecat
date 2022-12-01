@@ -37,7 +37,7 @@ html {
 }
 
 .Page .Title {
-  color: var(--primary);
+  color: var(--secondary);
   font-size: 3.5rem;
   margin-bottom: 3rem;
 }
@@ -98,7 +98,7 @@ html {
   left: 0;
   width: 100%;
   z-index: 1;
-  border-bottom: 2px solid var(--primary);
+  border-bottom: 2px solid var(--secondary);
 }
 
 .Provider {

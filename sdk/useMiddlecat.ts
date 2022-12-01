@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import pkceChallenge from "pkce-challenge";
 import safeURL from "../util/safeURL";
+import { silentDeleteSearchParams } from "../util/searchparams";
 
 interface AmcatUser {
   /** hostname (e.g. "https://vu.amcat.nl/api") */
@@ -19,12 +20,7 @@ interface AmcatUser {
   middlecat: string;
 }
 
-/**
- * How to make this as secure as possible?
- * - Let AmcatUser carry a method that wraps the axios call with the token in a closure
- * - We can refresh the access token silently very frequently (but if we put it in a closure, this requires state update of the method)
- * - Kill the session when a user closes the tab or refreshes. Show warning when trying to do so
- */
+// This hook is to be used in React applications using middlecat
 
 /**
  * Sign-in to an AmCAT family server using MiddleCat.
@@ -42,6 +38,7 @@ export default function useMiddlecat(
   const busy = useRef(false); // to prevent double calls, which could invalidate tokens
 
   const login = useCallback(() => {
+    //return;
     if (user || busy.current) return;
     busy.current = true;
     oauthMiddlecat(amcatHost, setUser).finally(() => {
@@ -82,7 +79,7 @@ async function oauthMiddlecat(
   amcatHost: string,
   setUser: Dispatch<SetStateAction<AmcatUser>>
 ) {
-  const searchParams = new URLSearchParams(document.location.search);
+  const searchParams = new URLSearchParams(window.location.search);
 
   // eventually: middlecat = getMiddlecatHost(amcatHost)
   const middlecat = safeURL("http://localhost:3000");
@@ -113,11 +110,12 @@ async function oauthMiddlecat(
         state,
         amcatHost
       );
+    if (!amcat_user) return;
 
     localStorage.setItem(amcatHost + "_" + "refresh_token", refresh_token);
     setUser({ ...amcat_user, access_token });
-    // should delete code url param, but not the rest
-    //window.history.replaceState(null, null, window.location.pathname);
+
+    silentDeleteSearchParams(["code", "state"]);
   }
 }
 
@@ -128,8 +126,11 @@ function oauthAuthorize(
 ) {
   const pkce = pkceChallenge();
   const state = (Math.random() + 1).toString(36).substring(2);
-  sessionStorage.setItem(amcatHost + "_" + "code_verifier", pkce.code_verifier);
-  sessionStorage.setItem(amcatHost + "_" + "state", state);
+
+  // need to remember code_verifier and state, and this needs to work across
+  // sessions because auth with magic links continues in new window.
+  localStorage.setItem(amcatHost + "_" + "code_verifier", pkce.code_verifier);
+  localStorage.setItem(amcatHost + "_" + "state", state);
   window.location.href = `${middlecat}/authorize?state=${state}&redirect_uri=${redirect_uri}&resource=${amcatHost}&code_challenge=${pkce.code_challenge}`;
 }
 
@@ -140,14 +141,14 @@ async function oauthAuthorizationCode(
   state: string,
   amcatHost: string
 ) {
-  if (sessionStorage.getItem(amcatHost + "_" + "state") !== state) {
+  if (localStorage.getItem(amcatHost + "_" + "state") !== state) {
     console.error("invalid oauth2 flow. Mismatching state");
     return;
   }
   const body = {
     grant_type: "authorization_code",
     code,
-    code_verifier: sessionStorage.getItem(amcatHost + "_" + "code_verifier"),
+    code_verifier: localStorage.getItem(amcatHost + "_" + "code_verifier"),
   };
 
   const res = await fetch(`${middlecat}/api/token`, {
@@ -158,6 +159,11 @@ async function oauthAuthorizationCode(
     },
     body: JSON.stringify(body),
   });
+
+  // cleanup. Not strictly needed because they have now lost
+  // their power, but still feels nice
+  localStorage.removeItem(amcatHost + "_" + "code_verifier");
+  localStorage.removeItem(amcatHost + "_" + "state");
   return await res.json();
 }
 

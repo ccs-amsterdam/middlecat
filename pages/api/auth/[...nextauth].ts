@@ -15,6 +15,7 @@ export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   pages: {
     signIn: "/signin",
+    verifyRequest: "/verify-request",
   },
   providers: [
     // WE SHOULD ONLY ADD OAUTH2 PROVIDERS WHERE EMAIL IS GUARENTEED TO BE VERIFIED.
