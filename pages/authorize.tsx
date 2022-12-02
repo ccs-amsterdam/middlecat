@@ -1,11 +1,21 @@
-import { signIn, signOut, useSession } from "next-auth/react";
+import { Session } from "next-auth";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import createClientID from "../util/createClientID";
 
-export default function IndexPage() {
+export default function Connect() {
+  return (
+    <div className="Page">
+      <div className="Container">
+        <ConfirmConnectRequest />
+      </div>
+    </div>
+  );
+}
+
+function ConfirmConnectRequest() {
   const { data: session, status } = useSession();
-  const [msg, setMsg] = useState("");
   const router = useRouter();
 
   if (status !== "loading" && !session) signIn();
@@ -14,49 +24,51 @@ export default function IndexPage() {
     if (status === "loading" || !session) return;
 
     const q = router.query;
-    console.log(q);
-    if (!q.redirect_uri || !q.state || !q.code_challenge || !q.resource) {
-      setMsg("Noooooooo invalid request");
-      return;
-    }
-
     createAmcatSession(q.redirect_uri, q.resource, q.state, q.code_challenge)
       .then((response_url) => {
         router.push(response_url);
         //window.location.href = response_url;
       })
-      .catch((e) => {
-        console.error(e);
-        setMsg("Nooooooo something went wrong in creating the AmCAT session");
-      });
+      .catch((e) => console.error(e));
   }, [router, session, status]);
 
-  useEffect(() => {
-    // here implement call to server to see if client is trusted.
-    // if so, can immediately accept
-    acceptToken();
-  });
+  const q = router.query;
+  if (!q.redirect_uri || !q.state || !q.code_challenge || !q.resource)
+    return <div>Invalid request</div>;
 
-  const render = () => {
-    const q = router.query;
-    if (!q.redirect_uri || !q.state || !q.code_challenge || !q.resource) {
-      return <div>Invalid request</div>;
-    }
+  if (session === "loading") return <div className="Loader" />;
 
-    if (session === "loading") return <div className="Loader" />;
-
-    return <button></button>;
-  };
-
-  // would be cool to also list active sessions on this page, and
-  // allow users to open or close them. Add notification that there
-  // can be a 30 minute delay when closing a session that is currently active
+  const clientURL = new URL(q.redirect_uri);
+  const serverURL = new URL(q.resource);
 
   return (
-    <div className="Page">
-      <div className="Container">
-        <div>{status === "loading" ? <div className="Loader" /> : msg}</div>
+    <div className="ConfirmConnection">
+      <div className="User">
+        <img className="Image" src={session?.user?.image} />
+        <span>{session?.user?.email}</span>
       </div>
+      <p>
+        <b className="SecondaryColor">{clientURL.host}</b> wants to sign in to{" "}
+        <b className="PrimaryColor">{serverURL.host}</b>
+      </p>
+      <div className="ConnectionContainer" onClick={acceptToken}>
+        <div className="Connection">
+          <div className="Label Client">
+            {/* <span>application</span>
+            <br /> */}
+            {clientURL.host}
+          </div>
+          <div className="zigzagClient" />
+
+          <div className="Divider">
+            <div>click to connect</div>
+          </div>
+          <div className="zigzagServer" />
+          <div className="Label Server">{serverURL.host}</div>
+        </div>
+      </div>
+
+      <button>I dont trust this connection</button>
     </div>
   );
 }
@@ -64,7 +76,7 @@ export default function IndexPage() {
 /**
  * We're doing an adjusted oauth2 + PKCE flow.
  *
- * @param redirect_uri The redirect uri also define the client_id (a client
+ * @param redirect_uri The redirect uri domain also serves as the client_id (a client
  *                     such as AmCAT4 react that wants to access an AmCAT resource server). Unlike
  *                     common auth servers, the client_id is not registered in MiddleCat, but
  *                     in the resource server (which should have a /clients endpoint). (MiddleCat

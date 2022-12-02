@@ -1,7 +1,9 @@
 :root {
-  --primary: #0d85ca;
-  --primary-light: #9ab5c5;
-  --secondary: #212121;
+  --primary: turquoise;
+  --primary-warm: coral;
+  --secondary: teal;
+  --secondary-warm: rgb(211, 63, 9);
+  --blend: coral;
 }
 
 #__next {
@@ -16,6 +18,19 @@ html {
   box-sizing: border-box;
   font-size: 62.5%;
   min-height: 100%;
+}
+
+.PrimaryColor {
+  color: var(--primary);
+}
+.PrimaryBackground {
+  background: var(--primary);
+}
+.SecondaryColor {
+  color: var(--secondary);
+}
+.SecondaryBackground {
+  background: var(--secondary);
 }
 
 .Page {
@@ -98,7 +113,7 @@ html {
   left: 0;
   width: 100%;
   z-index: 1;
-  border-bottom: 2px solid var(--secondary);
+  border-bottom: 2px solid;
 }
 
 .Provider {
@@ -153,6 +168,152 @@ button:hover {
   100% {
     transform: rotate(360deg);
   }
+}
+
+.ConfirmConnection {
+  display: flex;
+  justify-content: space-evenly;
+  flex-direction: column;
+}
+
+.ConfirmConnection button {
+  border-color: crimson;
+}
+.ConfirmConnection button:hover {
+  background: crimson;
+}
+
+.ConfirmConnection button {
+  width: 80%;
+  margin: auto;
+}
+
+.ConnectionContainer {
+  display: flex;
+  height: 211px;
+  flex-direction: column;
+  --divider: 20px;
+  --serverColor: var(--primary);
+  --clientColor: var(--secondary);
+}
+
+.ConnectionContainer:hover {
+  --divider: 0px;
+  --serverColor: var(--blend);
+  --clientColor: var(--blend);
+}
+
+.User {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 800;
+  padding: 0.5rem;
+  border: 1px solid var(--primary-warm);
+  border-radius: 10px;
+  color: var(--primary-warm);
+}
+
+.Image {
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 1rem;
+}
+
+.Connection {
+  /* border: 1px solid var(--secondary);
+  border-radius: 20px; */
+  margin: auto;
+  width: 100%;
+  color: var(--secondary);
+  cursor: pointer;
+}
+
+.Connection .Divider {
+  margin: var(--divider);
+  transition: margin 0.5s;
+  z-index: 0;
+  position: relative;
+}
+
+.Connection .Divider div {
+  height: 22px;
+}
+
+.Label {
+  text-align: center;
+  color: black;
+  font-weight: 900;
+  position: relative;
+  z-index: 2;
+  transition: background 0.5s;
+}
+
+.Label.Client {
+  position: relative;
+  padding-bottom: 1rem;
+  background: var(--clientColor);
+  color: white;
+  font-size: 2rem;
+  padding: 1.5rem 1rem 1.5rem 1rem;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+.Label.Client span {
+  font-size: 1.5rem;
+  color: var(--primary-warm);
+}
+
+.zigzagClient {
+  transition: background 0.3s;
+
+  background: linear-gradient(-45deg, transparent 16px, var(--clientColor) 0),
+    linear-gradient(45deg, transparent 16px, var(--clientColor) 0);
+  background-position: left 10px bottom;
+  background-repeat: repeat-x;
+  background-size: 20px 25px;
+  content: " ";
+  display: block;
+  margin-bottom: -18.5px;
+  z-index: 2;
+  position: relative;
+
+  height: 15px;
+  width: 100%;
+}
+
+.Label.Server {
+  position: relative;
+  padding-bottom: 1rem;
+  background: var(--serverColor);
+  color: white;
+  font-size: 2rem;
+  padding: 1.5rem 1rem 1.5rem 1rem;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+.Label.Server span {
+  font-size: 1.5rem;
+  color: var(--secondary-warm);
+}
+
+.zigzagServer {
+  transition: background 0.5s;
+
+  background: linear-gradient(-45deg, var(--serverColor) 16px, transparent 0),
+    linear-gradient(45deg, var(--serverColor) 16px, transparent 0);
+  background-position: left top;
+  background-repeat: repeat-x;
+  background-size: 20px 25px;
+  content: " ";
+  display: block;
+  margin-top: -18.5px;
+  z-index: 2;
+  position: relative;
+
+  height: 15px;
+  width: 100%;
 }
 
 /* From hereon mostly stuff from the demo page. Should be removed at some point */

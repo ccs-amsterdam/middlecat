@@ -59,7 +59,6 @@ async function authorizationCodeRequest(
     where: {
       id,
       secret,
-      codeChallenge, // PKCE code challenge
     },
     include: {
       user: true,
@@ -70,10 +69,14 @@ async function authorizationCodeRequest(
     return res.status(401).send({ message: "Invalid token request" });
   }
 
-  if (session.secretUsed || session.secretExpires < Date.now()) {
-    // if session secret expired, delete the session.
-    // if the secret is used twice, also delete it. This way,
-    // if a malicious user already logged in, the refresh tokens are disabled
+  if (
+    session.codeChallenge !== codeChallenge ||
+    session.secretUsed ||
+    session.secretExpires < Date.now()
+  ) {
+    // Two reasons to delete the session
+    // - Session can be compromised if codeChallenge failed or secret has already been used
+    // - If the secret expired, the session can never be started
     await prisma.amcatSession.delete({
       where: { id: session.id },
     });

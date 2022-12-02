@@ -73,7 +73,6 @@ function Providers({ providers, csrfToken }: Props) {
 
 function EmailLogin({ csrfToken }: { csrfToken: string }) {
   const router = useRouter();
-  console.log(router);
 
   return (
     <form
