@@ -30,6 +30,8 @@ export default function SignIn({ providers, csrfToken }: Props) {
     }
   }, [status, session, router]);
 
+  if (status !== "loading" && session) return null;
+
   return (
     <div className="Page">
       <div className="Container">

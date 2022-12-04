@@ -1,9 +1,9 @@
 :root {
-  --primary: turquoise;
+  --primary: rgb(56, 199, 185);
   --primary-warm: coral;
-  --secondary: teal;
+  --secondary: #008080;
   --secondary-warm: rgb(211, 63, 9);
-  --blend: coral;
+  --blend: #00b4b4;
 }
 
 #__next {
@@ -138,7 +138,6 @@ button {
   border: 2px solid var(--primary);
   font-size: inherit;
   max-width: 400px;
-  margin: 0;
   padding: 1rem 2rem;
   margin: 2px;
   border-radius: 10px;
@@ -149,6 +148,15 @@ button {
 button:hover {
   color: white;
   background: var(--primary);
+}
+
+.ButtonGroup {
+  display: flex;
+}
+
+.ButtonGroup button {
+  margin: 10px;
+  flex: 1;
 }
 
 .Loader {
@@ -176,31 +184,14 @@ button:hover {
   flex-direction: column;
 }
 
-.ConfirmConnection button {
-  border-color: crimson;
-}
-.ConfirmConnection button:hover {
-  background: crimson;
-}
-
-.ConfirmConnection button {
-  width: 80%;
-  margin: auto;
-}
-
 .ConnectionContainer {
   display: flex;
-  height: 211px;
   flex-direction: column;
-  --divider: 20px;
-  --serverColor: var(--primary);
-  --clientColor: var(--secondary);
+  height: 139.5px;
 }
 
-.ConnectionContainer:hover {
-  --divider: 0px;
-  --serverColor: var(--blend);
-  --clientColor: var(--blend);
+.ConnectionDetails {
+  padding: 1rem;
 }
 
 .User {
@@ -208,16 +199,16 @@ button:hover {
   justify-content: center;
   align-items: center;
   font-weight: 800;
-  padding: 0.5rem;
-  border: 1px solid var(--primary-warm);
-  border-radius: 10px;
-  color: var(--primary-warm);
+
+  color: var(--secondary);
 }
 
 .Image {
-  height: 40px;
+  height: 45px;
+  width: 45px;
   border-radius: 50%;
   margin-right: 1rem;
+  border: 1px solid var(--secondary);
 }
 
 .Connection {
@@ -225,95 +216,18 @@ button:hover {
   border-radius: 20px; */
   margin: auto;
   width: 100%;
-  color: var(--secondary);
-  cursor: pointer;
-}
-
-.Connection .Divider {
-  margin: var(--divider);
-  transition: margin 0.5s;
-  z-index: 0;
-  position: relative;
-}
-
-.Connection .Divider div {
-  height: 22px;
-}
-
-.Label {
-  text-align: center;
-  color: black;
+  transition: background 0.2s;
+  background: var(--secondary);
+  color: white;
   font-weight: 900;
-  position: relative;
-  z-index: 2;
-  transition: background 0.5s;
+  cursor: pointer;
+  border: 1px solid black;
+  border-radius: 10px;
+  padding: 2rem 1rem;
 }
 
-.Label.Client {
-  position: relative;
-  padding-bottom: 1rem;
-  background: var(--clientColor);
-  color: white;
-  font-size: 2rem;
-  padding: 1.5rem 1rem 1.5rem 1rem;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
-}
-.Label.Client span {
-  font-size: 1.5rem;
-  color: var(--primary-warm);
-}
-
-.zigzagClient {
-  transition: background 0.3s;
-
-  background: linear-gradient(-45deg, transparent 16px, var(--clientColor) 0),
-    linear-gradient(45deg, transparent 16px, var(--clientColor) 0);
-  background-position: left 10px bottom;
-  background-repeat: repeat-x;
-  background-size: 20px 25px;
-  content: " ";
-  display: block;
-  margin-bottom: -18.5px;
-  z-index: 2;
-  position: relative;
-
-  height: 15px;
-  width: 100%;
-}
-
-.Label.Server {
-  position: relative;
-  padding-bottom: 1rem;
-  background: var(--serverColor);
-  color: white;
-  font-size: 2rem;
-  padding: 1.5rem 1rem 1.5rem 1rem;
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 10px;
-}
-
-.Label.Server span {
-  font-size: 1.5rem;
-  color: var(--secondary-warm);
-}
-
-.zigzagServer {
-  transition: background 0.5s;
-
-  background: linear-gradient(-45deg, var(--serverColor) 16px, transparent 0),
-    linear-gradient(45deg, var(--serverColor) 16px, transparent 0);
-  background-position: left top;
-  background-repeat: repeat-x;
-  background-size: 20px 25px;
-  content: " ";
-  display: block;
-  margin-top: -18.5px;
-  z-index: 2;
-  position: relative;
-
-  height: 15px;
-  width: 100%;
+.Connection:hover {
+  background: var(--primary);
 }
 
 /* From hereon mostly stuff from the demo page. Should be removed at some point */

@@ -38,17 +38,6 @@ export const authOptions: NextAuthOptions = {
     colorScheme: "light",
   },
   callbacks: {
-    async session({ session, user, token }) {
-      // We need the session id, so that we can link AmcatSession to
-      // MiddleCat session. This way, when a user logs out of Middlecat,
-      // the AmcatSessions are also cleared. NextAuth doesn't give us
-      // the id, but we can look it up with the userId + expires values
-      const s = await prisma.session.findFirst({
-        where: { userId: user.id, expires: session.expires },
-      });
-      session.id = s.id;
-      return session;
-    },
     async signIn({ user, account }) {
       // Force linking of accounts with the same email address. Based on:
       //   https://github.com/danyel117/wanda/blob/main/pages/api/auth/%5B...nextauth%5D.ts
@@ -62,7 +51,8 @@ export const authOptions: NextAuthOptions = {
       // if account provider is email, always let true (this isn't blocked by nextauth)
       if (account.provider === "email") return true;
 
-      // fetch the account of the user
+      // fetch the account of the user. (users are unique email-addresses, which can have
+      // multiple accounts for different identity provider, like google, github, email, etc.)
       const existingAccount = await prisma.account.findFirst({
         where: {
           providerAccountId: account.providerAccountId,
@@ -71,11 +61,6 @@ export const authOptions: NextAuthOptions = {
 
       // if the account exists, let it through
       if (existingAccount) return true;
-
-      // get the user
-      const existingUser = await prisma.user.findFirst({
-        where: { email: user.email },
-      });
 
       const newAccount = {
         provider: account.provider,
@@ -87,6 +72,36 @@ export const authOptions: NextAuthOptions = {
         token_type: account.token_type,
         id_token: account.id_token,
       };
+
+      // get the user
+      const existingUser = await prisma.user.findFirst({
+        where: { email: user.email },
+      });
+
+      if (!existingUser) {
+        // if the user doesn't exist, create the user and account and let it through
+        try {
+          await prisma.user.create({
+            data: {
+              email: user.email,
+              name: user.name,
+              image: user.image,
+              accounts: {
+                create: newAccount,
+              },
+            },
+          });
+          return true;
+        } catch {
+          return false;
+        }
+      }
+
+      // if we're here, the user does exist, but doesn't have an account for this provider yet.
+      // We need to create the new account manually using the email address to connect it to existing accounts.
+      // This way we override NextAuths default behavior of not linking them (additional warning that
+      // this is only safe if we only use providers where email is verified).
+      // Also,
 
       // if the user exists but it does not have accounts, create the account and let it through
       if (existingUser) {
@@ -103,7 +118,6 @@ export const authOptions: NextAuthOptions = {
         return true;
       }
 
-      // if the user doesn't exist, create the user, create the account and let it through
       try {
         await prisma.user.create({
           data: {

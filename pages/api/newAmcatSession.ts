@@ -4,7 +4,10 @@ import { unstable_getServerSession } from "next-auth";
 import { authOptions } from "./auth/[...nextauth]";
 import { randomBytes } from "crypto";
 
-const MAX_SESSION_DURATION_DAYS = 100;
+// at the moment 1 day seems sensible since refresh tokens are
+// only kept in memory. But if we manage to implement service workers
+// we might keep them active a bit longer
+const MAX_SESSION_DURATION_HOURS = 24;
 
 export default async function handler(
   req: NextApiRequest,
@@ -53,11 +56,10 @@ export default async function handler(
   const amcatsession = await prisma.AmcatSession.create({
     data: {
       userId,
-      sessionId: session.id,
       clientId,
       resource,
       expires: new Date(
-        Date.now() + 1000 * 60 * 60 * 24 * MAX_SESSION_DURATION_DAYS
+        Date.now() + 1000 * 60 * 60 * MAX_SESSION_DURATION_HOURS
       ),
       codeChallenge,
       secret: randomBytes(64).toString("hex"),

@@ -34,8 +34,6 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  amcatSessions AmcatSession[]
 }
 
 model User {
@@ -68,7 +66,6 @@ model VerificationToken {
 model AmcatSession {
   id              String    @id @default(cuid())
   userId          String
-  sessionId       String                 // AmcatSession are nested in MiddleCat sessions. When users log out of middlecat, all amcatsessions under this session should be deleted
   clientId        String                 // id of client, generally the url host
   resource        String                 // The specific AmCAT service + server 
   expires         DateTime               // session expiration date
@@ -78,7 +75,6 @@ model AmcatSession {
   codeChallenge   String    @db.Text     // PKCE code challenge for authorization code grant
   refreshTokens   AmcatRefreshToken[]
 
-  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 

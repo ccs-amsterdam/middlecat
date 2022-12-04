@@ -38,6 +38,10 @@ export default async function handler(
   if (req.body.grant_type === "refresh_token") {
     await refreshTokenRequest(res, req);
   }
+
+  if (req.body.grant_type === "kill_session") {
+    await killSessionRequest(res, req);
+  }
 }
 
 async function authorizationCodeRequest(
@@ -97,10 +101,14 @@ async function refreshTokenRequest(res: NextApiResponse, req: NextApiRequest) {
   const refreshToken = req.body.refresh_token;
   const [id, secret] = refreshToken.split(".");
 
-  const arf = prisma.amcatRefreshToken.findFirst({
+  const arf = await prisma.amcatRefreshToken.findFirst({
     where: { id, secret },
     include: {
-      amcatsession: true,
+      amcatsession: {
+        include: {
+          user: true,
+        },
+      },
     },
   });
 
@@ -161,4 +169,21 @@ async function createTokens(
   // to be super safe, so we just include it directly
   const amcat_user = { host: resource, email, name, image, exp, middlecat };
   res.status(200).json({ amcat_user, access_token, refresh_token });
+}
+
+async function killSessionRequest(res: NextApiResponse, req: NextApiRequest) {
+  const refreshToken = req.body.refresh_token;
+  const [id, secret] = refreshToken.split(".");
+
+  const arf = await prisma.amcatRefreshToken.findFirst({
+    where: { id, secret },
+  });
+
+  if (arf) {
+    await prisma.amcatSession.delete({
+      where: { id: arf.amcatsessionId },
+    });
+  }
+
+  res.status(201).send({ message: "Session killed (yay)" });
 }

@@ -1,74 +1,81 @@
 import { Session } from "next-auth";
-import { signIn, useSession } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useCallback } from "react";
 import createClientID from "../util/createClientID";
 
 export default function Connect() {
+  const { data: session, status } = useSession();
+
+  if (status === "unauthenticated") signIn();
+  if (!session?.user) return null;
+
   return (
     <div className="Page">
       <div className="Container">
-        <ConfirmConnectRequest />
+        {!session ? (
+          <div className="Loader" />
+        ) : (
+          <ConfirmConnectRequest user={session.user} />
+        )}
       </div>
     </div>
   );
 }
 
-function ConfirmConnectRequest() {
-  const { data: session, status } = useSession();
+interface User {
+  name: string;
+  email: string;
+  image: string;
+}
+
+function ConfirmConnectRequest({ user }: { user: User }) {
   const router = useRouter();
-
-  if (status !== "loading" && !session) signIn();
-
-  const acceptToken = useCallback(() => {
-    if (status === "loading" || !session) return;
-
-    const q = router.query;
-    createAmcatSession(q.redirect_uri, q.resource, q.state, q.code_challenge)
-      .then((response_url) => {
-        router.push(response_url);
-        //window.location.href = response_url;
-      })
-      .catch((e) => console.error(e));
-  }, [router, session, status]);
-
   const q = router.query;
   if (!q.redirect_uri || !q.state || !q.code_challenge || !q.resource)
     return <div>Invalid request</div>;
 
-  if (session === "loading") return <div className="Loader" />;
+  const acceptToken = () => {
+    createAmcatSession(q.redirect_uri, q.resource, q.state, q.code_challenge)
+      .then((response_url) => {
+        router.push(response_url);
+      })
+      .catch((e) => console.error(e));
+  };
 
   const clientURL = new URL(q.redirect_uri);
   const serverURL = new URL(q.resource);
 
   return (
     <div className="ConfirmConnection">
-      <div className="User">
-        <img className="Image" src={session?.user?.image} />
-        <span>{session?.user?.email}</span>
-      </div>
-      <p>
-        <b className="SecondaryColor">{clientURL.host}</b> wants to sign in to{" "}
-        <b className="PrimaryColor">{serverURL.host}</b>
-      </p>
-      <div className="ConnectionContainer" onClick={acceptToken}>
-        <div className="Connection">
-          <div className="Label Client">
-            {/* <span>application</span>
-            <br /> */}
-            {clientURL.host}
+      <div className="ConnectionDetails">
+        <div className="User">
+          <img className="Image" src={user?.image} />
+          <div>
+            {user?.name}
+            <br />
+            <span style={{ fontSize: "1.2rem" }}>{user?.email}</span>
           </div>
-          <div className="zigzagClient" />
-
-          <div className="Divider">
-            <div>click to connect</div>
-          </div>
-          <div className="zigzagServer" />
-          <div className="Label Server">{serverURL.host}</div>
+        </div>
+        <div style={{ marginTop: "2rem" }}>
+          The application <b className="SecondaryColor">{clientURL.host}</b>{" "}
+          wants to access your account on{" "}
+          <b className="SecondaryColor">{serverURL.host}</b>
         </div>
       </div>
+      <div className="ConnectionContainer" onClick={acceptToken}>
+        <div className="Connection">Authorize</div>
+      </div>
 
-      <button>I dont trust this connection</button>
+      <div className="ButtonGroup">
+        <button onClick={() => signOut()}>Change user</button>
+        <button
+          onClick={() => router.push(q.redirect_uri)}
+          style={{ marginTop: "10px" }}
+          onClick={() => signOut()}
+        >
+          Refuse connection
+        </button>
+      </div>
     </div>
   );
 }
