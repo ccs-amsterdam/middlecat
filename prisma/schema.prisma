@@ -88,7 +88,7 @@ model AmcatRefreshToken {
   id               String    @id @default(cuid())
   amcatsessionId   String
   secret           String    @db.Text
-  invalid          Boolean   @default(false)   
+  invalidSince     DateTime?     
      
   amcatsession     AmcatSession     @relation(fields: [amcatsessionId], references: [id], onDelete: Cascade)
 }

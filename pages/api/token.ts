@@ -5,6 +5,7 @@ import prisma from "../../util/prismadb";
 import { createHash } from "crypto";
 import NextCors from "nextjs-cors";
 import { AmcatSession } from "@prisma/client";
+import { User } from "next-auth";
 
 export default async function handler(
   req: NextApiRequest,
@@ -76,7 +77,7 @@ async function authorizationCodeRequest(
   if (
     session.codeChallenge !== codeChallenge ||
     session.secretUsed ||
-    session.secretExpires < Date.now()
+    session.secretExpires < new Date(Date.now())
   ) {
     // Two reasons to delete the session
     // - Session can be compromised if codeChallenge failed or secret has already been used
@@ -94,7 +95,7 @@ async function authorizationCodeRequest(
     data: { secretUsed: true },
   });
 
-  await createTokens(res, req, session);
+  await createTokens(res, req, session, session.user);
 }
 
 async function refreshTokenRequest(res: NextApiResponse, req: NextApiRequest) {
@@ -116,9 +117,11 @@ async function refreshTokenRequest(res: NextApiResponse, req: NextApiRequest) {
     return res.status(401).send({ message: "Invalid refreshtoken request" });
   }
 
-  if (arf.invalid) {
+  const leeway = 2000;
+  if (arf.invalidSince && arf.invalidSince < new Date(Date.now() - leeway)) {
     // we use rotating refresh tokens, so if a token is used multiple times,
-    // it indicates that the session could be compromised.
+    // it indicates that the session could be compromised. Due to possible
+    // race conditions, we do allow for a small time window (leeway).
     await prisma.amcatSession.delete({
       where: { id: arf.amcatsessionId },
     });
@@ -127,31 +130,36 @@ async function refreshTokenRequest(res: NextApiResponse, req: NextApiRequest) {
 
   await prisma.amcatRefreshToken.update({
     where: { id: arf.id },
-    data: { invalid: true },
+    data: { invalidSince: new Date(Date.now()) },
   });
 
-  await createTokens(res, req, arf.amcatsession);
+  await createTokens(res, req, arf.amcatsession, arf.amcatsession.user);
 }
 
 async function createTokens(
   res: NextApiResponse,
   req: NextApiRequest,
-  session: AmcatSession
+  session: AmcatSession,
+  user: User
 ) {
   const { clientId, resource } = session;
-  const { email, name, image } = session.user;
-  const middlecat = `https://${req.headers.host}`;
+  const { email, name, image } = user;
+
+  // middlecat should always be on https, but exception for localhost
+  const host = req.headers.host || "";
+  const protocol = /^localhost/.test(host) ? "http://" : "https://";
+  const middlecat = protocol + host;
 
   // expire 30 minutes from now
-  //const exp = Math.floor(Date.now() / 1000) + 60 * 30;
+  // (exp seems to commonly be in seconds)
   const exp = Math.floor(Date.now() / 1000) + 60 * 30;
 
   const access_token = createAccessToken({
     clientId,
     resource,
-    email,
-    name,
-    image,
+    email: email || "",
+    name: name || "",
+    image: image || "",
     exp,
     middlecat,
   });
@@ -159,16 +167,12 @@ async function createTokens(
   const art = await prisma.amcatRefreshToken.create({
     data: {
       amcatsessionId: session.id,
-      secret: randomBytes(64).toString("hex"),
+      secret: randomBytes(32).toString("hex"),
     },
   });
   const refresh_token = art.id + "." + art.secret;
 
-  // All the amcat_user stuff is also in the token, but it seems properly decoding the
-  // base64 in client side js is non-trivial. For the client it doesn't have
-  // to be super safe, so we just include it directly
-  const amcat_user = { host: resource, email, name, image, exp, middlecat };
-  res.status(200).json({ amcat_user, access_token, refresh_token });
+  res.status(200).json({ access_token, refresh_token });
 }
 
 async function killSessionRequest(res: NextApiResponse, req: NextApiRequest) {
@@ -180,6 +184,8 @@ async function killSessionRequest(res: NextApiResponse, req: NextApiRequest) {
   });
 
   if (arf) {
+    // note that here we don't care if the refresh token is already invalid.
+    //
     await prisma.amcatSession.delete({
       where: { id: arf.amcatsessionId },
     });

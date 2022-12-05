@@ -1,4 +1,4 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
+import NextAuth, { Account, NextAuthOptions } from "next-auth";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "../../../util/prismadb";
 
@@ -39,6 +39,11 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async signIn({ user, account }) {
+      // nextauth has typed user to only have user.email, but it can actually
+      // have name and image as well.
+      const u = user as any;
+
+      if (!account) return false;
       // Force linking of accounts with the same email address. Based on:
       //   https://github.com/danyel117/wanda/blob/main/pages/api/auth/%5B...nextauth%5D.ts
 
@@ -80,12 +85,13 @@ export const authOptions: NextAuthOptions = {
 
       if (!existingUser) {
         // if the user doesn't exist, create the user and account and let it through
+
         try {
           await prisma.user.create({
             data: {
-              email: user.email,
-              name: user.name,
-              image: user.image,
+              email: u.email,
+              name: u.name,
+              image: u.image,
               accounts: {
                 create: newAccount,
               },
@@ -121,9 +127,9 @@ export const authOptions: NextAuthOptions = {
       try {
         await prisma.user.create({
           data: {
-            email: user.email,
-            name: user.name,
-            image: user.image,
+            email: u.email,
+            name: u.name,
+            image: u.image,
             accounts: {
               create: newAccount,
             },

@@ -6,6 +6,8 @@ interface AccessTokenPayload {
   email: string;
   name: string;
   image: string;
+  exp: number;
+  middlecat: string;
 }
 
 // can only be called server-side (from api endpoints)

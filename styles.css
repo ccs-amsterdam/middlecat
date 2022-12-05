@@ -151,12 +151,14 @@ button:hover {
 }
 
 .ButtonGroup {
+  height: 6rem;
   display: flex;
+  gap: 1rem;
 }
 
 .ButtonGroup button {
-  margin: 10px;
-  flex: 1;
+  height: 100%;
+  margin: 0px;
 }
 
 .Loader {

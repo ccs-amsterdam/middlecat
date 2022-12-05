@@ -32,28 +32,19 @@ export default async function handler(
   }
 
   // Link amcat session to nextauth user table
-  const user = await prisma.User.findFirst({
+  const user = await prisma.user.findFirst({
     where: {
       email: session.user.email,
     },
   });
+  if (!user) {
+    res.status(404).send("Invalid request");
+    return;
+  }
   const userId = user.id;
 
-  // optionally, we can delete previous session from the same user for the
-  // same client and resource. This effectively logs users out if they
-  // log in to the same amcat resource with the same client (but maybe on a different browser).
-  // It is safer, but perhaps inconvenient. For now we go with safer, and
-  // then determine how inconvenient it is.
-  await prisma.AmcatSession.deleteMany({
-    where: {
-      userId,
-      clientId,
-      resource,
-    },
-  });
-
   // finally, create the new session
-  const amcatsession = await prisma.AmcatSession.create({
+  const amcatsession = await prisma.amcatSession.create({
     data: {
       userId,
       clientId,

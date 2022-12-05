@@ -15,7 +15,6 @@
     "@prisma/client": "^4.6.1",
     "@types/jsonwebtoken": "^8.5.9",
     "jsonwebtoken": "^8.5.1",
-    "jwt-decode": "^3.1.2",
     "next": "latest",
     "next-auth": "latest",
     "nextjs-cors": "^2.1.2",

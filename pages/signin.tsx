@@ -1,7 +1,8 @@
+import { GetServerSideProps } from "next";
 import {
+  ClientSafeProvider,
   getCsrfToken,
   getProviders,
-  getSession,
   signIn,
   useSession,
 } from "next-auth/react";
@@ -9,13 +10,13 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { FaEnvelope, FaGithub, FaGoogle } from "react-icons/fa";
 
-const logos = {
+const logos: any = {
   GitHub: <FaGithub />,
   Google: <FaGoogle />,
 };
 
 interface Props {
-  providers: any;
+  providers: Record<any, ClientSafeProvider>;
   csrfToken: string | undefined;
 }
 
@@ -26,7 +27,9 @@ export default function SignIn({ providers, csrfToken }: Props) {
   useEffect(() => {
     if (status === "loading") return;
     if (session && router.query.callbackUrl) {
-      router.push(router.query.callbackUrl);
+      const p = router.query.callbackUrl;
+      const url = Array.isArray(p) ? p[0] : p;
+      router.push(url);
     }
   }, [status, session, router]);
 
@@ -49,10 +52,11 @@ export default function SignIn({ providers, csrfToken }: Props) {
 }
 
 function Providers({ providers, csrfToken }: Props) {
+  if (!csrfToken) return null;
   return (
     <>
       <span>Connect via</span>
-      {Object.values(providers).map((provider) => {
+      {Object.values(providers).map((provider: ClientSafeProvider) => {
         if (provider.type === "email") return null;
         return (
           <div className="Provider" key={provider.name}>
@@ -98,7 +102,7 @@ function EmailLogin({ csrfToken }: { csrfToken: string }) {
   );
 }
 
-export async function getServerSideProps(context) {
+export async function getServerSideProps(context: any) {
   const providers = await getProviders();
   const csrfToken = await getCsrfToken(context);
   return {

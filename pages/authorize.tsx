@@ -1,7 +1,7 @@
-import { Session } from "next-auth";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import createClientID from "../util/createClientID";
+import { DefaultSession, User } from "next-auth";
 
 export default function Connect() {
   const { data: session, status } = useSession();
@@ -15,41 +15,41 @@ export default function Connect() {
         {!session ? (
           <div className="Loader" />
         ) : (
-          <ConfirmConnectRequest user={session.user} />
+          <ConfirmConnectRequest session={session} />
         )}
       </div>
     </div>
   );
 }
 
-interface User {
-  name: string;
-  email: string;
-  image: string;
-}
-
-function ConfirmConnectRequest({ user }: { user: User }) {
+function ConfirmConnectRequest({ session }: { session: DefaultSession }) {
+  const user = session.user;
   const router = useRouter();
+
   const q = router.query;
   if (!q.redirect_uri || !q.state || !q.code_challenge || !q.resource)
     return <div>Invalid request</div>;
+  const redirect_uri = asSingleString(q.redirect_uri);
+  const state = asSingleString(q.state);
+  const code_challenge = asSingleString(q.code_challenge);
+  const resource = asSingleString(q.resource);
 
   const acceptToken = () => {
-    createAmcatSession(q.redirect_uri, q.resource, q.state, q.code_challenge)
+    createAmcatSession(redirect_uri, resource, state, code_challenge)
       .then((response_url) => {
         router.push(response_url);
       })
       .catch((e) => console.error(e));
   };
 
-  const clientURL = new URL(q.redirect_uri);
-  const serverURL = new URL(q.resource);
+  const clientURL = new URL(redirect_uri);
+  const serverURL = new URL(resource);
 
   return (
     <div className="ConfirmConnection">
       <div className="ConnectionDetails">
         <div className="User">
-          <img className="Image" src={user?.image} />
+          <img className="Image" src={user?.image || ""} />
           <div>
             {user?.name}
             <br />
@@ -68,11 +68,7 @@ function ConfirmConnectRequest({ user }: { user: User }) {
 
       <div className="ButtonGroup">
         <button onClick={() => signOut()}>Change user</button>
-        <button
-          onClick={() => router.push(q.redirect_uri)}
-          style={{ marginTop: "10px" }}
-          onClick={() => signOut()}
-        >
+        <button onClick={() => router.push(redirect_uri)}>
           Refuse connection
         </button>
       </div>
@@ -93,16 +89,11 @@ function ConfirmConnectRequest({ user }: { user: User }) {
  * @param codeChallenge PKCE code challenge
  */
 async function createAmcatSession(
-  redirectUri: string | string[],
-  resource: string | string[],
-  state: string | string[],
-  codeChallenge: string | string[]
-): string {
-  redirectUri = asSingleString(redirectUri);
-  resource = asSingleString(resource);
-  state = asSingleString(state);
-  codeChallenge = asSingleString(codeChallenge);
-
+  redirectUri: string,
+  resource: string,
+  state: string,
+  codeChallenge: string
+): Promise<string> {
   const clientId = createClientID(redirectUri);
 
   const res = await fetch(`/api/newAmcatSession`, {
