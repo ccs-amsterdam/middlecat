@@ -21,7 +21,6 @@ export default async function handler(
   }
 
   const session = await unstable_getServerSession(req, res, authOptions);
-
   if (!session?.user?.email) {
     res.status(403).send("Need to be signed in");
     return;
@@ -63,8 +62,5 @@ export default async function handler(
     },
   });
 
-  // our authentication code is the id + secret
-  const authCode = amcatsession.id + "." + amcatsession.secret;
-
-  res.status(200).json({ authCode });
+  res.status(200).json({ ...amcatsession });
 }

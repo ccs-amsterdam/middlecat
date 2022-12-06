@@ -40,26 +40,30 @@ function ConfirmConnectRequest({ session }: { session: DefaultSession }) {
   const acceptToken = () => {
     createAmcatSession(redirect_uri, resource, state, code_challenge)
       .then((response_url) => {
-        localStorage.setItem(
-          `authorized ${user?.email} - ${clientURL.host} - ${serverURL.host}`,
-          String(Date.now() + 1000 * 60 * 60 * 24 * 30)
-        );
+        // localStorage.setItem(
+        //   `authorized ${user?.email} - ${clientURL.host} - ${serverURL.host}`,
+        //   String(Date.now() + 1000 * 60 * 60 * 24 * 30)
+        // );
         router.push(response_url);
       })
       .catch((e) => console.error(e));
   };
 
+  // DISABLED AUTO SKIPPING THE CONFIRM SCREEN because people need to be
+  // able to change users in middlecat. Somehow need to check if person
+  // closed the session or just left it without closing.
+  //
   // We only ask to verify once per device-user-client-resource per month. Could also
   // store this in the DB, but might not want to keep longitudinal data of
   // what clients/servers people used due to privacy considerations.
-  const hasAuthorizedOn = localStorage.getItem(
-    `authorized ${user?.email} - ${clientURL.host} - ${serverURL.host}`
-  );
-  const sometimeago = Date.now() - 1000 * 60 * 60 * 24 * 30;
-  if (hasAuthorizedOn && Number(hasAuthorizedOn) > sometimeago) {
-    acceptToken();
-    return null;
-  }
+  // const hasAuthorizedOn = localStorage.getItem(
+  //   `authorized ${user?.email} - ${clientURL.host} - ${serverURL.host}`
+  // );
+  // const sometimeago = Date.now() - 1000 * 60 * 60 * 24 * 30;
+  // if (hasAuthorizedOn && Number(hasAuthorizedOn) > sometimeago) {
+  //   acceptToken();
+  //   return null;
+  // }
 
   return (
     <div className="ConfirmConnection">
@@ -83,10 +87,8 @@ function ConfirmConnectRequest({ session }: { session: DefaultSession }) {
       </div>
 
       <div className="ButtonGroup">
-        <button onClick={() => signOut()}>Change user</button>
-        <button onClick={() => router.push(redirect_uri)}>
-          Refuse connection
-        </button>
+        <button onClick={() => signOut()}>Sign-out from MiddleCst</button>
+        <button onClick={() => router.push("/")}>Refuse connection</button>
       </div>
     </div>
   );
@@ -128,7 +130,9 @@ async function createAmcatSession(
   });
 
   const data = await res.json();
-  return `${redirectUri}?code=${data.authCode}&state=${state}`;
+  // our authentication code is the id + secret
+  const authCode = data.id + "." + data.secret;
+  return `${redirectUri}?code=${authCode}&state=${state}`;
 }
 
 function asSingleString(stringOrArray: string | string[]): string {
