@@ -1,18 +1,21 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import NextCors from "nextjs-cors";
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   await NextCors(req, res, {
-    methods: ["POST"],
+    methods: ["GET"],
     origin: "*",
     optionsSuccessStatus: 200,
   });
 
-  const config = {
+  // This should return the trusted middlecat server.
+  // In this example its the same server that hosts middlecat
+  const data = {
     middlecat_url: `http://${req?.headers?.host || ""}`,
-    session_exp: 24 * 60 * 1000,
-    refresh_exp: 1 * 60 * 1000,
   };
 
-  res.status(200).json(config);
+  res.status(200).json(data);
 }

@@ -3,11 +3,13 @@ import prisma from "../../util/prismadb";
 import { unstable_getServerSession } from "next-auth";
 import { authOptions } from "./auth/[...nextauth]";
 import { randomBytes } from "crypto";
+import settings from "../../util/settings";
 
 // at the moment 1 day seems sensible since refresh tokens are
 // only kept in memory. But if we manage to implement service workers
 // we might keep them active a bit longer
 const MAX_SESSION_DURATION_HOURS = 24;
+const MAX_REFRESH_DURATION_HOURS = 2;
 
 export default async function handler(
   req: NextApiRequest,
@@ -50,7 +52,10 @@ export default async function handler(
       clientId,
       resource,
       expires: new Date(
-        Date.now() + 1000 * 60 * 60 * MAX_SESSION_DURATION_HOURS
+        Date.now() + 1000 * 60 * 60 * settings.session_expire_hours
+      ),
+      refreshExpires: new Date(
+        Date.now() + 1000 * 60 * 60 * settings.refresh_expire_hours
       ),
       codeChallenge,
       secret: randomBytes(64).toString("hex"),
