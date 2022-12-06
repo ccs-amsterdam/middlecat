@@ -13,8 +13,10 @@ export default async function handler(
 
   // This should return the trusted middlecat server.
   // In this example its the same server that hosts middlecat
+  const host = req?.headers?.host || "";
+  const protocol = /^localhost/.test(host) ? "http://" : "https://";
   const data = {
-    middlecat_url: `http://${req?.headers?.host || ""}`,
+    middlecat_url: protocol + host,
   };
 
   res.status(200).json(data);

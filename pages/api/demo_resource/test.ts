@@ -23,10 +23,12 @@ export default async function handler(
   // these should be fixed on the server, and the server should only
   // accept tokens if they have the server's own address as resource.
   // (MiddleCat asked the used permission to access this resource)
-  let resource = `http://${req?.headers?.host}/api/demo_resource`;
-  if (!public_key) {
-    const trusted_middlecat = `http://${req?.headers?.host}`;
+  const host = req?.headers?.host || "";
+  const protocol = /^localhost/.test(host) ? "http://" : "https://";
+  const resource = protocol + host + "/api/demo_resource";
 
+  if (!public_key) {
+    const trusted_middlecat = protocol + host;
     const res = await fetch(trusted_middlecat + "/api/public_key");
     public_key = await res.json();
   }
