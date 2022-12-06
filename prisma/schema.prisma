@@ -68,7 +68,8 @@ model AmcatSession {
   userId          String
   clientId        String                 // id of client, generally the url host
   resource        String                 // The specific AmCAT service + server 
-  expires         DateTime               // session expiration date
+  expires         DateTime               // ultimate session expiration date
+  refreshExpires  DateTime               // refreshing expires
   secret          String    @db.Text     // authorization code = id + '.' + secret. 
   secretExpires   DateTime                 // secret code expiration date
   secretUsed      Boolean   @default(false) // secret code can only be used once. we stop the session if used twice to catch malicious reuse 

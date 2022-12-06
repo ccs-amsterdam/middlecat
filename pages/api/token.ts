@@ -61,13 +61,8 @@ async function authorizationCodeRequest(
   const [id, secret] = code.split(".");
 
   const session = await prisma.amcatSession.findFirst({
-    where: {
-      id,
-      secret,
-    },
-    include: {
-      user: true,
-    },
+    where: { id },
+    include: { user: true },
   });
 
   if (!session) {
@@ -76,10 +71,11 @@ async function authorizationCodeRequest(
 
   if (
     session.codeChallenge !== codeChallenge ||
+    session.secret !== secret ||
     session.secretUsed ||
     session.secretExpires < new Date(Date.now())
   ) {
-    // Two reasons to delete the session
+    // Reasons for deleting the session
     // - Session can be compromised if codeChallenge failed or secret has already been used
     // - If the secret expired, the session can never be started
     await prisma.amcatSession.delete({
@@ -168,6 +164,7 @@ async function createTokens(
     data: {
       amcatsessionId: session.id,
       secret: randomBytes(32).toString("hex"),
+      created: new Date(Date.now()),
     },
   });
   const refresh_token = art.id + "." + art.secret;
