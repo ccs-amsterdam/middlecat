@@ -87,7 +87,7 @@ function ConfirmConnectRequest({ session }: { session: DefaultSession }) {
       </div>
 
       <div className="ButtonGroup">
-        <button onClick={() => signOut()}>Sign-out from MiddleCst</button>
+        <button onClick={() => signOut()}>Change user</button>
         <button onClick={() => router.push("/")}>Refuse connection</button>
       </div>
     </div>
