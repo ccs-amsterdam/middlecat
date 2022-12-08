@@ -155,16 +155,25 @@ export async function killSessionRequest(
   const refreshToken = req.body.refresh_token;
   const [id, secret] = refreshToken.split(".");
 
+  // You can kill a session if you have a refresh token.
+  // (We don't care if the token is already expired)
   const arf = await prisma.amcatRefreshToken.findFirst({
     where: { id, secret },
+    include: { amcatsession: true },
   });
 
   if (arf) {
-    // note that here we don't care if the refresh token is already invalid.
-    //
-    await prisma.amcatSession.delete({
-      where: { id: arf.amcatsessionId },
-    });
+    if (req.body?.sign_out) {
+      // sign out from middlecat in general (also kills underlying amcat session)
+      await prisma.session.delete({
+        where: { id: arf.amcatsession.sessionId },
+      });
+    } else {
+      // only kill amcat session
+      await prisma.amcatSession.delete({
+        where: { id: arf.amcatsessionId },
+      });
+    }
   }
 
   res.status(201).send({ message: "Session killed (yay)" });

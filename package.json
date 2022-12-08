@@ -12,6 +12,7 @@
   "author": "Kasper Welbers <kasperwelbers@gmail.com>",
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.5",
+    "@next/font": "^13.0.6",
     "@prisma/client": "^4.6.1",
     "@types/jsonwebtoken": "^8.5.9",
     "jsonwebtoken": "^8.5.1",

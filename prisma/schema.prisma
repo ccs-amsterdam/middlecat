@@ -34,6 +34,7 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amcatsession AmcatSession[]
 }
 
 model User {
@@ -56,15 +57,15 @@ model VerificationToken {
 }
 
 
-// Users can start an AmCAT session using an oauth2 + PKCE flow.
-// Once the flow is completed, they receive a short lived access_token
-// and long lived rotating refresh token. The access token is a JWT,
-// and can be validated by the AmCAT resource.
-// 
-// expired sessions are automatically removed when a new session is created
-// or a refresh token is used.
+// The Session table is for middlecat sessions. This table is for
+// AmCAT sessions (including modules like AnnoTinder). Currently,
+// AmCAT sessions are bound to MiddleCat sessions, meaning that if 
+// a user closes the MiddleCat session, this automatically closes
+// all underlying AmCAT sessions. This is nice for security, and I
+// think its what users would expect. 
 model AmcatSession {
   id              String    @id @default(cuid())
+  sessionId       String                
   userId          String
   clientId        String                 // id of client, generally the url host
   resource        String                 // The specific AmCAT service + server 
@@ -76,7 +77,8 @@ model AmcatSession {
   codeChallenge   String    @db.Text     // PKCE code challenge for authorization code grant
   refreshTokens   AmcatRefreshToken[]
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session         Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user            User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // refresh tokens are tied to sessions and rotated.

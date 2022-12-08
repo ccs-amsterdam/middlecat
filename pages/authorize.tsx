@@ -2,22 +2,28 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import createClientID from "../util/createClientID";
 import { DefaultSession, User } from "next-auth";
+import Header from "../components/Header";
 
 export default function Connect() {
   const { data: session, status } = useSession();
+  const router = useRouter();
 
-  if (status === "unauthenticated") signIn();
-  if (!session?.user) return null;
+  if (status === "unauthenticated") {
+    // we don't use signIn, because that redirects via the API, causing a
+    // black page in between
+    //signIn();
+    const query = { ...router.query, callbackUrl: "/authorize" };
+    router.push({ pathname: "auth/signin", query });
+  }
 
+  //if (!session?.user) return null;
   return (
-    <div className="Page">
-      <div className="Container">
-        {!session ? (
-          <div className="Loader" />
-        ) : (
-          <ConfirmConnectRequest session={session} />
-        )}
-      </div>
+    <div className="Container">
+      {!session ? (
+        <div className="Loader" />
+      ) : (
+        <ConfirmConnectRequest session={session} />
+      )}
     </div>
   );
 }

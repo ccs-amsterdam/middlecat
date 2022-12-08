@@ -32,21 +32,13 @@ export default async function handler(
     return;
   }
 
-  // Link amcat session to nextauth user table
-  const user = await prisma.user.findFirst({
-    where: {
-      email: session.user.email,
-    },
-  });
-  if (!user) {
-    res.status(404).send("Invalid request");
-    return;
-  }
-  const userId = user.id;
+  const sessionId = session.id;
+  const userId = session.user.id;
 
   // finally, create the new session
   const amcatsession = await prisma.amcatSession.create({
     data: {
+      sessionId,
       userId,
       clientId,
       resource,

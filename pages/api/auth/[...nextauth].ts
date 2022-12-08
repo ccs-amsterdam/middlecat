@@ -14,8 +14,8 @@ import EmailProvider from "next-auth/providers/email";
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   pages: {
-    signIn: "/signin",
-    verifyRequest: "/verify-request",
+    signIn: "/auth/signin",
+    verifyRequest: "/auth/verify-request",
   },
   providers: [
     // WE SHOULD ONLY ADD OAUTH2 PROVIDERS WHERE EMAIL IS GUARENTEED TO BE VERIFIED.
@@ -38,6 +38,21 @@ export const authOptions: NextAuthOptions = {
     colorScheme: "light",
   },
   callbacks: {
+    async session({ session, user }) {
+      session.user.id = user.id;
+
+      // nextauth doesn't show session id (or is just don't know how),
+      // but we can find it based on expiration time and user
+      const s = await prisma.session.findFirst({
+        where: {
+          userId: user.id,
+          expires: session.expires,
+        },
+      });
+      session.id = s.id;
+
+      return session;
+    },
     async signIn({ user, account }) {
       // nextauth has typed user to only have user.email, but it can actually
       // have name and image as well.

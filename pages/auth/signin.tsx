@@ -9,6 +9,7 @@ import {
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { FaEnvelope, FaGithub, FaGoogle } from "react-icons/fa";
+import Header from "../../../components/Header";
 
 const logos: any = {
   GitHub: <FaGithub />,
@@ -29,23 +30,20 @@ export default function SignIn({ providers, csrfToken }: Props) {
     if (session && router.query.callbackUrl) {
       const p = router.query.callbackUrl;
       const url = Array.isArray(p) ? p[0] : p;
-      router.push(url);
+      router.push({ pathname: url, query: router.query });
     }
   }, [status, session, router]);
 
   if (status !== "loading" && session) return null;
 
   return (
-    <div className="Page">
-      <div className="Container">
-        <div>
-          <h1 className="Title">MiddleCat</h1>
-          {status === "loading" ? (
-            <div className="Loader" />
-          ) : (
-            <Providers providers={providers} csrfToken={csrfToken} />
-          )}
-        </div>
+    <div className="Container">
+      <div>
+        {status === "loading" ? (
+          <div className="Loader" />
+        ) : (
+          <Providers providers={providers} csrfToken={csrfToken} />
+        )}
       </div>
     </div>
   );
@@ -53,6 +51,7 @@ export default function SignIn({ providers, csrfToken }: Props) {
 
 function Providers({ providers, csrfToken }: Props) {
   if (!csrfToken) return null;
+
   return (
     <>
       <span>Connect via</span>
