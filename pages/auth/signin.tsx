@@ -29,7 +29,7 @@ export default function SignIn({ providers, csrfToken }: Props) {
     if (session && router.query.callbackUrl) {
       const p = router.query.callbackUrl;
       const url = Array.isArray(p) ? p[0] : p;
-      router.push({ pathname: url, query: router.query });
+      router.push(url);
     }
   }, [status, session, router]);
 

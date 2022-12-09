@@ -25,12 +25,12 @@ export default function App({
           font-family: ${font.style.fontFamily};
         }
       `}</style>
-      <SessionProvider session={session}>
-        <div className="Page">
-          <Header />
+      <div className="Page">
+        <Header />
+        <SessionProvider session={session}>
           <Component {...pageProps} />
-        </div>
-      </SessionProvider>
+        </SessionProvider>
+      </div>
     </>
   );
 }

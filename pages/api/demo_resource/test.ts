@@ -33,6 +33,8 @@ export default async function handler(
     public_key = await res.json();
   }
 
+  // note: might be better to always re-check the public-key if token cannot be validated
+
   const payload = jwt.verify(access_token, public_key);
   if (!payload || payload.resource !== resource) {
     res.status(401).send(`Invalid token`);
