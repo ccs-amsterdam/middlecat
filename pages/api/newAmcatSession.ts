@@ -33,7 +33,7 @@ export default async function handler(
   }
 
   const sessionId = session.id;
-  const userId = session.user.id;
+  const userId = session.userId;
 
   // finally, create the new session
   const amcatsession = await prisma.amcatSession.create({

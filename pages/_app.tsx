@@ -9,7 +9,7 @@ import Header from "../components/Header";
 
 const font = Poppins({
   weight: "500",
-  subsets: "devanagari",
+  subsets: ["devanagari"],
 });
 
 // Use of the <SessionProvider> is mandatory to allow components that call

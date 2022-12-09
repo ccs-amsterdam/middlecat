@@ -9,7 +9,6 @@ import {
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { FaEnvelope, FaGithub, FaGoogle } from "react-icons/fa";
-import Header from "../../../components/Header";
 
 const logos: any = {
   GitHub: <FaGithub />,

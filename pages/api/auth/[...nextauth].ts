@@ -39,7 +39,7 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async session({ session, user }) {
-      session.user.id = user.id;
+      session.userId = user.id;
 
       // nextauth doesn't show session id (or is just don't know how),
       // but we can find it based on expiration time and user
@@ -49,7 +49,7 @@ export const authOptions: NextAuthOptions = {
           expires: session.expires,
         },
       });
-      session.id = s.id;
+      session.id = s?.id || "";
 
       return session;
     },

@@ -2,6 +2,7 @@ import "next-auth";
 
 declare module "next-auth" {
   interface Session {
-    middlecatToken: string;
+    id: string;
+    userId: string;
   }
 }
