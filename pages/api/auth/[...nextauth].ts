@@ -41,6 +41,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, user }) {
       session.userId = user.id;
 
+      console.log(session, user);
       // nextauth doesn't show session id (or is just don't know how),
       // but we can find it based on expiration time and user
       const s = await prisma.session.findFirst({
@@ -49,6 +50,7 @@ export const authOptions: NextAuthOptions = {
           expires: session.expires,
         },
       });
+      console.log(s);
       session.id = s?.id || "";
 
       return session;
@@ -57,7 +59,7 @@ export const authOptions: NextAuthOptions = {
       // nextauth has typed user to only have user.email, but it can actually
       // have name and image as well.
       const u = user as any;
-
+      console.log(user, account);
       if (!account) return false;
       // Force linking of accounts with the same email address. Based on:
       //   https://github.com/danyel117/wanda/blob/main/pages/api/auth/%5B...nextauth%5D.ts
