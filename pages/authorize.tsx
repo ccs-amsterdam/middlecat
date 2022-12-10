@@ -12,14 +12,8 @@ export default function Connect() {
     // we don't use signIn, because that redirects via the API, causing a
     // blank page in between
     //signIn();
-    //const query = { ...router.query, callbackUrl: "/authorize" };
-    let queryparams = "";
-    for (let param of Object.keys(router.query)) {
-      queryparams += queryparams ? "&" : "?";
-      queryparams += param + "=" + router.query[param];
-    }
-    const callbackUrl = "/authorize" + queryparams;
-    router.push({ pathname: "auth/signin", query: { callbackUrl } });
+    const query = { callbackUrl: router.asPath };
+    router.push({ pathname: "auth/signin", query });
   }
 
   //if (!session?.user) return null;

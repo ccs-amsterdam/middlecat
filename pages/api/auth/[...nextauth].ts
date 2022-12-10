@@ -1,10 +1,11 @@
-import NextAuth, { Account, NextAuthOptions } from "next-auth";
+import NextAuth, { User, Account, NextAuthOptions } from "next-auth";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "../../../util/prismadb";
 
 import GoogleProvider from "next-auth/providers/google";
 import GithubProvider from "next-auth/providers/github";
 import EmailProvider from "next-auth/providers/email";
+import { AdapterUser } from "next-auth/adapters";
 
 // import AppleProvider from "next-auth/providers/apple"
 // import EmailProvider from "next-auth/providers/email"
@@ -41,7 +42,6 @@ export const authOptions: NextAuthOptions = {
     async session({ session, user }) {
       session.userId = user.id;
 
-      console.log(session, user);
       // nextauth doesn't show session id (or is just don't know how),
       // but we can find it based on expiration time and user
       const s = await prisma.session.findFirst({
@@ -50,16 +50,16 @@ export const authOptions: NextAuthOptions = {
           expires: session.expires,
         },
       });
-      console.log(s);
       session.id = s?.id || "";
 
       return session;
     },
+
     async signIn({ user, account }) {
       // nextauth has typed user to only have user.email, but it can actually
       // have name and image as well.
       const u = user as any;
-      console.log(user, account);
+
       if (!account) return false;
       // Force linking of accounts with the same email address. Based on:
       //   https://github.com/danyel117/wanda/blob/main/pages/api/auth/%5B...nextauth%5D.ts
@@ -79,10 +79,22 @@ export const authOptions: NextAuthOptions = {
         where: {
           providerAccountId: account.providerAccountId,
         },
+        include: {
+          user: true,
+        },
       });
 
       // if the account exists, let it through
-      if (existingAccount) return true;
+      if (existingAccount) {
+        await fillEmptyUserDetails(user, existingAccount.user);
+        return true;
+      }
+
+      // if account doesn't exist we'll create one, but first need
+      // to check if user exists
+      const existingUser = await prisma.user.findFirst({
+        where: { email: user.email },
+      });
 
       const newAccount = {
         provider: account.provider,
@@ -95,14 +107,8 @@ export const authOptions: NextAuthOptions = {
         id_token: account.id_token,
       };
 
-      // get the user
-      const existingUser = await prisma.user.findFirst({
-        where: { email: user.email },
-      });
-
       if (!existingUser) {
         // if the user doesn't exist, create the user and account and let it through
-
         try {
           await prisma.user.create({
             data: {
@@ -128,6 +134,7 @@ export const authOptions: NextAuthOptions = {
 
       // if the user exists but it does not have accounts, create the account and let it through
       if (existingUser) {
+        await fillEmptyUserDetails(user, existingUser);
         await prisma.account.create({
           data: {
             ...newAccount,
@@ -159,5 +166,19 @@ export const authOptions: NextAuthOptions = {
     },
   },
 };
+
+async function fillEmptyUserDetails(
+  user: User | AdapterUser,
+  existingUser: User
+) {
+  // if user details (name, image) are missing, but current account
+  // provides them, add them.
+  const name = existingUser.name || user.name || "";
+  const image = existingUser.image || user.image || "";
+  await prisma.user.update({
+    where: { id: existingUser.id },
+    data: { name, image },
+  });
+}
 
 export default NextAuth(authOptions);
