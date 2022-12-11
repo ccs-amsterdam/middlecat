@@ -163,8 +163,10 @@ export async function killSessionRequest(
   });
 
   if (arf) {
-    if (req.body?.sign_out) {
+    if (req.body?.sign_out && arf.amcatsession.sessionId) {
       // sign out from middlecat in general (also kills underlying amcat session)
+      // amcatSessions for R, Python etc. tokens have no sessionId, so for these
+      // we do have to kill the specific amcatSession
       await prisma.session.delete({
         where: { id: arf.amcatsession.sessionId },
       });

@@ -4,8 +4,10 @@ export default function verifyRequest() {
       <div className="Container">
         <h3>Please check your email</h3>
         <p>
-          You should have received a link to sign-in and continue your session.
-          <span>You can now close this window</span>
+          We have sent you a link to sign-in and continue your session.
+          <br />
+          <br />
+          <i>You can close this window</i>
         </p>
       </div>
     </div>

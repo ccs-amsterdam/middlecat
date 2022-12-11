@@ -4,12 +4,7 @@ import { unstable_getServerSession } from "next-auth";
 import { authOptions } from "./auth/[...nextauth]";
 import { randomBytes } from "crypto";
 import settings from "../../util/settings";
-
-// at the moment 1 day seems sensible since refresh tokens are
-// only kept in memory. But if we manage to implement service workers
-// we might keep them active a bit longer
-const MAX_SESSION_DURATION_HOURS = 24;
-const MAX_REFRESH_DURATION_HOURS = 2;
+import { getCsrfToken } from "next-auth/react";
 
 export default async function handler(
   req: NextApiRequest,
@@ -26,9 +21,22 @@ export default async function handler(
     return;
   }
 
-  const { clientId, resource, state, codeChallenge } = req.body || {};
-  if (!clientId || !resource || !state || !codeChallenge) {
+  // double check whether this makes sense, because it seems that it can be
+  // (or used to be) more complicated.
+  const token = await getCsrfToken({ req });
+  if (token !== req.body.csrfToken) {
+    res.status(403).send("Invalid csrf token");
+    return;
+  }
+
+  const { clientId, resource, state, codeChallenge, label, type } =
+    req.body || {};
+  if (!clientId || !resource || !state || !codeChallenge || !label || !type) {
     res.status(404).send("Invalid request");
+    return;
+  }
+  if (type !== "browser" && type !== "api_key") {
+    res.status(404).send("Invalid type");
     return;
   }
 
@@ -39,6 +47,8 @@ export default async function handler(
   const amcatsession = await prisma.amcatSession.create({
     data: {
       sessionId,
+      type,
+      label,
       userId,
       clientId,
       resource,

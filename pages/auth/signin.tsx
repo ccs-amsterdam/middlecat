@@ -1,4 +1,3 @@
-import { GetServerSideProps } from "next";
 import {
   ClientSafeProvider,
   getCsrfToken,
@@ -36,7 +35,7 @@ export default function SignIn({ providers, csrfToken }: Props) {
   if (status !== "loading" && session) return null;
 
   return (
-    <div className="Container">
+    <div className="Container Narrow">
       <div>
         {status === "loading" ? (
           <div className="Loader" />

@@ -1,34 +1,51 @@
-import { signIn, signOut, useSession } from "next-auth/react";
+import { getCsrfToken, signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import createClientID from "../util/createClientID";
-import { DefaultSession, User } from "next-auth";
-import Header from "../components/Header";
+import { DefaultSession } from "next-auth";
+import { FaUser } from "react-icons/fa";
 
-export default function Connect() {
+interface Props {
+  csrfToken: string | undefined;
+}
+
+export default function Connect({ csrfToken }: Props) {
   const { data: session, status } = useSession();
   const router = useRouter();
 
   if (status === "unauthenticated") {
-    // we don't use signIn, because that redirects via the API, causing a
-    // blank page in between
-    //signIn();
+    // basically what signIn does, but signIn redirects via API which give a blank page on transition
     const query = { callbackUrl: router.asPath };
     router.push({ pathname: "auth/signin", query });
   }
 
   //if (!session?.user) return null;
   return (
-    <div className="Container">
+    <div className="Container Narrow">
       {!session ? (
         <div className="Loader" />
       ) : (
-        <ConfirmConnectRequest session={session} />
+        <ConfirmConnectRequest session={session} csrfToken={csrfToken} />
       )}
     </div>
   );
 }
 
-function ConfirmConnectRequest({ session }: { session: DefaultSession }) {
+export async function getServerSideProps(context: any) {
+  const csrfToken = await getCsrfToken(context);
+  return {
+    props: { csrfToken },
+  };
+}
+
+interface ConfirmConnectRequestProps {
+  session: DefaultSession;
+  csrfToken: string | undefined;
+}
+
+function ConfirmConnectRequest({
+  session,
+  csrfToken,
+}: ConfirmConnectRequestProps) {
   const user = session.user;
   const router = useRouter();
 
@@ -44,7 +61,7 @@ function ConfirmConnectRequest({ session }: { session: DefaultSession }) {
   const serverURL = new URL(resource);
 
   const acceptToken = () => {
-    createAmcatSession(redirect_uri, resource, state, code_challenge)
+    createAmcatSession(redirect_uri, resource, state, code_challenge, csrfToken)
       .then((response_url) => {
         router.push(response_url);
       })
@@ -55,17 +72,28 @@ function ConfirmConnectRequest({ session }: { session: DefaultSession }) {
     <div className="ConfirmConnection">
       <div className="ConnectionDetails">
         <div className="User">
-          <img className="Image" src={user?.image || ""} />
+          {user?.image ? (
+            <img className="Image" src={user.image} alt="profile" />
+          ) : (
+            <FaUser className="MissingImage" />
+          )}
           <div>
-            {user?.name}
-            <br />
-            <span style={{ fontSize: "1.2rem" }}>{user?.email}</span>
+            {user?.name || user?.email}
+            {user?.name ? (
+              <>
+                <br />
+                <span style={{ fontSize: "1.2rem" }}>{user?.email}</span>
+              </>
+            ) : null}
           </div>
         </div>
         <div style={{ marginTop: "2rem" }}>
           The application <b className="SecondaryColor">{clientURL.host}</b>{" "}
-          wants to access your account on{" "}
-          <b className="SecondaryColor">{serverURL.host}</b>
+          wants to connect to{" "}
+          <b className="SecondaryColor">
+            {serverURL.host + serverURL.pathname}
+          </b>{" "}
+          on your behalf
         </div>
       </div>
       <div className="ConnectionContainer" onClick={acceptToken}>
@@ -96,7 +124,8 @@ async function createAmcatSession(
   redirectUri: string,
   resource: string,
   state: string,
-  codeChallenge: string
+  codeChallenge: string,
+  csrfToken: string | undefined
 ): Promise<string> {
   const clientId = createClientID(redirectUri);
 
@@ -112,6 +141,9 @@ async function createAmcatSession(
       state,
       codeChallenge,
       redirectUri,
+      csrfToken,
+      type: "browser",
+      label: clientId,
     }),
   });
 

@@ -6,6 +6,7 @@ import GoogleProvider from "next-auth/providers/google";
 import GithubProvider from "next-auth/providers/github";
 import EmailProvider from "next-auth/providers/email";
 import { AdapterUser } from "next-auth/adapters";
+import { JsonWebTokenError } from "jsonwebtoken";
 
 // import AppleProvider from "next-auth/providers/apple"
 // import EmailProvider from "next-auth/providers/email"
@@ -20,8 +21,6 @@ export const authOptions: NextAuthOptions = {
   },
   providers: [
     // WE SHOULD ONLY ADD OAUTH2 PROVIDERS WHERE EMAIL IS GUARENTEED TO BE VERIFIED.
-    // THIS IS NOT IN THE OAUTH2 PROTOCOL, SO THERE CAN BE PROVIDERS WHERE
-    // USERS CAN REGISTER AN EMAIL ADDRESS THAT IS NOT THEIRS.
     GithubProvider({
       clientId: process.env.GITHUB_ID,
       clientSecret: process.env.GITHUB_SECRET,
@@ -171,10 +170,10 @@ async function fillEmptyUserDetails(
   user: User | AdapterUser,
   existingUser: User
 ) {
-  // if user details (name, image) are missing, but current account
-  // provides them, add them.
-  const name = existingUser.name || user.name || "";
-  const image = existingUser.image || user.image || "";
+  // use details (name, image) of current account.
+  // if details are missing, use most recent (if existing)
+  const name = user.name || existingUser.name || "";
+  const image = user.image || existingUser.image || "";
   await prisma.user.update({
     where: { id: existingUser.id },
     data: { name, image },
