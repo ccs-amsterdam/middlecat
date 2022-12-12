@@ -56,6 +56,10 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+enum Type {
+  browser
+  apiKey
+}
 
 // The Session table is for middlecat sessions. This table is for
 // AmCAT sessions (including modules like AnnoTinder). Currently,
@@ -66,12 +70,14 @@ model VerificationToken {
 model AmcatSession {
   id              String    @id @default(cuid())
   sessionId       String?                // sessionId is optional, because session for bearer tokens (e.g., for R, Python) should be independent         
-  label           String                 // for diplaying sessions to user
-  type            String                 // either "browser" or "apiKey". For displaying sessions to user
   userId          String
+  type            Type                   // either "browser" or "apiKey". For displaying sessions to user
+  label           String                 // for diplaying sessions to user
   clientId        String                 // id of client, generally the url host
   resource        String                 // The specific AmCAT service + server 
+  scope           String                 // To be added. Most authorization will be handled by server, but read-only api keys sound nice
   expires         DateTime               // ultimate session expiration date
+  refreshRotate   Boolean                // should refresh tokens be rotated?
   refreshExpires  DateTime               // refreshing expires
   secret          String    @db.Text     // authorization code = id + '.' + secret. 
   secretExpires   DateTime                 // secret code expiration date
@@ -93,7 +99,6 @@ model AmcatRefreshToken {
   id               String    @id @default(cuid())
   amcatsessionId   String
   secret           String    @db.Text 
-  rotating         Boolean   @default(true)  // could disable this for API keys used in distributed systems
   invalidSince     DateTime?     
      
   amcatsession     AmcatSession     @relation(fields: [amcatsessionId], references: [id], onDelete: Cascade)

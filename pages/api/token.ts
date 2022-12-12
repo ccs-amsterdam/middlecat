@@ -1,12 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "../../util/prismadb";
+import prisma from "../../functions/prismadb";
 import NextCors from "nextjs-cors";
 
 import {
   authorizationCodeRequest,
   refreshTokenRequest,
   killSessionRequest,
-} from "../../util/grantTypes";
+} from "../../functions/grantTypes";
 
 export default async function handler(
   req: NextApiRequest,
@@ -43,14 +43,16 @@ export default async function handler(
   });
 
   if (req.body.grant_type === "authorization_code") {
-    await authorizationCodeRequest(res, req);
+    return await authorizationCodeRequest(res, req);
   }
 
   if (req.body.grant_type === "refresh_token") {
-    await refreshTokenRequest(res, req);
+    return await refreshTokenRequest(res, req);
   }
 
   if (req.body.grant_type === "kill_session") {
-    await killSessionRequest(res, req);
+    return await killSessionRequest(res, req);
   }
+
+  return res.status(400).send({ message: "Invalid or missing grant type" });
 }

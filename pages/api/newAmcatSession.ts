@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "../../util/prismadb";
+import prisma from "../../functions/prismadb";
 import { unstable_getServerSession } from "next-auth";
 import { authOptions } from "./auth/[...nextauth]";
 import { randomBytes } from "crypto";
-import settings from "../../util/settings";
+import settings from "../../functions/settings";
 import { getCsrfToken } from "next-auth/react";
 
 export default async function handler(
@@ -21,21 +21,29 @@ export default async function handler(
     return;
   }
 
-  // double check whether this makes sense, because it seems that it can be
-  // (or used to be) more complicated.
+  // double check, because it seems that it can be (or used to be) more complicated.
+  // But I assume getCsrfToken already checks the hash, so this should work.
   const token = await getCsrfToken({ req });
-  if (token !== req.body.csrfToken) {
+  if (token !== req.headers["x-csrf-token"]) {
     res.status(403).send("Invalid csrf token");
     return;
   }
 
-  const { clientId, resource, state, codeChallenge, label, type } =
-    req.body || {};
+  const {
+    clientId,
+    resource,
+    state,
+    codeChallenge,
+    label,
+    type,
+    scope,
+    refreshRotate,
+  } = req.body || {};
   if (!clientId || !resource || !state || !codeChallenge || !label || !type) {
     res.status(404).send("Invalid request");
     return;
   }
-  if (type !== "browser" && type !== "api_key") {
+  if (type !== "browser" && type !== "apiKey") {
     res.status(404).send("Invalid type");
     return;
   }
@@ -52,9 +60,11 @@ export default async function handler(
       userId,
       clientId,
       resource,
+      scope: scope || "",
       expires: new Date(
         Date.now() + 1000 * 60 * 60 * settings.session_expire_hours
       ),
+      refreshRotate: refreshRotate ?? true,
       refreshExpires: new Date(
         Date.now() + 1000 * 60 * 60 * settings.refresh_expire_hours
       ),

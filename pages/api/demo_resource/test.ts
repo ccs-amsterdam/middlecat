@@ -29,8 +29,9 @@ export default async function handler(
 
   if (!public_key) {
     const trusted_middlecat = protocol + host;
-    const res = await fetch(trusted_middlecat + "/api/public_key");
-    public_key = await res.json();
+    const res = await fetch(trusted_middlecat + "/api/configuration");
+    const config = await res.json();
+    public_key = config.public_key;
   }
 
   // note: might be better to always re-check the public-key if token cannot be validated

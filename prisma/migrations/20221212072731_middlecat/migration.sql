@@ -1,3 +1,6 @@
+-- CreateEnum
+CREATE TYPE "Type" AS ENUM ('browser', 'apiKey');
+
 -- CreateTable
 CREATE TABLE "Account" (
     "id" TEXT NOT NULL,
@@ -47,15 +50,19 @@ CREATE TABLE "VerificationToken" (
 -- CreateTable
 CREATE TABLE "AmcatSession" (
     "id" TEXT NOT NULL,
+    "sessionId" TEXT,
     "userId" TEXT NOT NULL,
+    "type" "Type" NOT NULL,
+    "label" TEXT NOT NULL,
     "clientId" TEXT NOT NULL,
     "resource" TEXT NOT NULL,
+    "scope" TEXT NOT NULL,
     "expires" TIMESTAMP(3) NOT NULL,
+    "refreshExpires" TIMESTAMP(3) NOT NULL,
     "secret" TEXT NOT NULL,
-    "codeChallenge" TEXT NOT NULL,
-    "redirectUri" TEXT NOT NULL,
     "secretExpires" TIMESTAMP(3) NOT NULL,
     "secretUsed" BOOLEAN NOT NULL DEFAULT false,
+    "codeChallenge" TEXT NOT NULL,
 
     CONSTRAINT "AmcatSession_pkey" PRIMARY KEY ("id")
 );
@@ -65,7 +72,8 @@ CREATE TABLE "AmcatRefreshToken" (
     "id" TEXT NOT NULL,
     "amcatsessionId" TEXT NOT NULL,
     "secret" TEXT NOT NULL,
-    "invalid" BOOLEAN NOT NULL DEFAULT false,
+    "rotating" BOOLEAN NOT NULL DEFAULT true,
+    "invalidSince" TIMESTAMP(3),
 
     CONSTRAINT "AmcatRefreshToken_pkey" PRIMARY KEY ("id")
 );
@@ -90,6 +98,9 @@ ALTER TABLE "Account" ADD CONSTRAINT "Account_userId_fkey" FOREIGN KEY ("userId"
 
 -- AddForeignKey
 ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AmcatSession" ADD CONSTRAINT "AmcatSession_sessionId_fkey" FOREIGN KEY ("sessionId") REFERENCES "Session"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "AmcatSession" ADD CONSTRAINT "AmcatSession_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

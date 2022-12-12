@@ -227,14 +227,22 @@ button:hover {
 .ConnectionContainer {
   display: flex;
   flex-direction: column;
-  height: 139.5px;
   font-size: 1.7rem;
   text-align: center;
+  margin: 1rem 0;
 }
 
 .ConnectionDetails {
   padding: 1rem;
-  text-align: justify;
+  text-align: center;
+}
+
+.ClientNote {
+  font-size: 1rem;
+}
+
+.ConfirmMessage {
+  margin-top: 2rem;
 }
 
 .User {

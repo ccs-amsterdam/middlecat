@@ -1,6 +1,5 @@
 import { getCsrfToken, signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import createClientID from "../util/createClientID";
 import { DefaultSession } from "next-auth";
 import { FaUser } from "react-icons/fa";
 
@@ -50,18 +49,63 @@ function ConfirmConnectRequest({
   const router = useRouter();
 
   const q = router.query;
-  if (!q.redirect_uri || !q.state || !q.code_challenge || !q.resource)
-    return <div>Invalid request</div>;
+  if (
+    !q.client_id ||
+    !q.redirect_uri ||
+    !q.state ||
+    !q.code_challenge ||
+    !q.resource
+  )
+    return <div style={{ textAlign: "center" }}>Invalid request</div>;
+
+  const client_id = asSingleString(q.client_id);
   const redirect_uri = asSingleString(q.redirect_uri);
   const state = asSingleString(q.state);
   const code_challenge = asSingleString(q.code_challenge);
   const resource = asSingleString(q.resource);
+  const scope = asSingleString(q.scope || "");
+  let refresh_rotate = q.static_refresh !== "static";
 
   const clientURL = new URL(redirect_uri);
   const serverURL = new URL(resource);
 
+  // if client is not localhost, the clientID must be identical to
+  // the client host as based on the redirect_uri. This is so at
+  // some point we can still decide to use client id. The link between
+  // client id and redirect_uri is important because the client id
+  // is shown to users to authorize, and should not be fake-able.
+
+  let clientLabel = client_id;
+  let clientNote = "";
+  if (!/^localhost/.test(clientURL.host)) {
+    // if browserclient
+    if (client_id !== clientURL.host) {
+      return <div>Invalid request</div>;
+    }
+    refresh_rotate = true; // browser client must use refresh rotation
+    clientNote = `This is a web application. Any website can access your account on AmCAT servers
+    if you let them. Only authorize if you were using and trust this website.`;
+  } else {
+    // if local application
+    clientLabel = `${client_id}`;
+    clientNote = `This is an application running on your own device. The name (${clientLabel}) is
+      set by this application, and we cannot verify its legitimacy. Only authorize if you were
+      using and trust this application`;
+    // When client is localhost, the given client ID will be shown together
+    // with the notification that an application on the user's own device wants to connect
+  }
+
   const acceptToken = () => {
-    createAmcatSession(redirect_uri, resource, state, code_challenge, csrfToken)
+    createAmcatSession(
+      client_id,
+      redirect_uri,
+      resource,
+      state,
+      code_challenge,
+      scope,
+      refresh_rotate,
+      csrfToken
+    )
       .then((response_url) => {
         router.push(response_url);
       })
@@ -87,22 +131,22 @@ function ConfirmConnectRequest({
             ) : null}
           </div>
         </div>
-        <div style={{ marginTop: "2rem" }}>
-          The application <b className="SecondaryColor">{clientURL.host}</b>{" "}
-          wants to connect to{" "}
+        <div className="ConfirmMessage">
+          The application <b className="SecondaryColor">{clientLabel}</b>*
+          <br /> wants to connect to server <br />
           <b className="SecondaryColor">
             {serverURL.host + serverURL.pathname}
           </b>{" "}
-          on your behalf
         </div>
       </div>
       <div className="ConnectionContainer" onClick={acceptToken}>
         <div className="Connection">Authorize</div>
+        <p className="ClientNote">* {clientNote}</p>
       </div>
 
       <div className="ButtonGroup">
         <button onClick={() => signOut()}>Change user</button>
-        <button onClick={() => router.push("/")}>Refuse connection</button>
+        <button onClick={() => router.push("/")}>I did not request this</button>
       </div>
     </div>
   );
@@ -121,27 +165,30 @@ function ConfirmConnectRequest({
  * @param codeChallenge PKCE code challenge
  */
 async function createAmcatSession(
+  clientId: string,
   redirectUri: string,
   resource: string,
   state: string,
   codeChallenge: string,
+  scope: string,
+  refreshRotate: boolean,
   csrfToken: string | undefined
 ): Promise<string> {
-  const clientId = createClientID(redirectUri);
-
   const res = await fetch(`/api/newAmcatSession`, {
     method: "POST",
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
+      "x-csrf-token": csrfToken || "",
     },
     body: JSON.stringify({
       clientId,
       resource,
       state,
       codeChallenge,
+      scope,
+      refreshRotate,
       redirectUri,
-      csrfToken,
       type: "browser",
       label: clientId,
     }),

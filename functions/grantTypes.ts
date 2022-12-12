@@ -80,7 +80,7 @@ export async function refreshTokenRequest(
 
   const leeway = 2000;
   if (arf.invalidSince && arf.invalidSince < new Date(Date.now() - leeway)) {
-    // we use rotating refresh tokens, so if a token is used multiple times,
+    // If refreshRotate is used, and refresh token is used multiple times,
     // it indicates that the session could be compromised. Due to possible
     // race conditions, we do allow for a small time window (leeway).
     await prisma.amcatSession.delete({
@@ -89,11 +89,14 @@ export async function refreshTokenRequest(
     return res.status(401).send({ message: "Invalid refreshtoken request" });
   }
 
-  // invalidate previous refresh token
-  await prisma.amcatRefreshToken.update({
-    where: { id: arf.id },
-    data: { invalidSince: new Date(Date.now()) },
-  });
+  if (arf.amcatsession.refreshRotate) {
+    // invalidate previous refresh token (only if refresh token rotation is used)
+    await prisma.amcatRefreshToken.update({
+      where: { id: arf.id },
+      data: { invalidSince: new Date(Date.now()) },
+    });
+  }
+
   // update refresh expire (we set refreshExpire in the session table becuase
   // its a bit more efficient when deleting expired sessions on every api/auth/token call)
   await prisma.amcatSession.update({
@@ -105,14 +108,26 @@ export async function refreshTokenRequest(
     },
   });
 
-  await createTokens(res, req, arf.amcatsession, arf.amcatsession.user);
+  // if refresh token rotation is not used, pass a static refresh token to createTokens
+  const static_refresh_token = arf.amcatsession.refreshRotate
+    ? null
+    : refreshToken;
+
+  await createTokens(
+    res,
+    req,
+    arf.amcatsession,
+    arf.amcatsession.user,
+    static_refresh_token
+  );
 }
 
 export async function createTokens(
   res: NextApiResponse,
   req: NextApiRequest,
   session: AmcatSession,
-  user: User
+  user: User,
+  static_refresh_token?: string
 ) {
   const { clientId, resource } = session;
   const { email, name, image } = user;
@@ -137,15 +152,26 @@ export async function createTokens(
     middlecat,
   });
 
-  const art = await prisma.amcatRefreshToken.create({
-    data: {
-      amcatsessionId: session.id,
-      secret: randomBytes(32).toString("hex"),
-    },
-  });
-  const refresh_token = art.id + "." + art.secret;
+  let refresh_token: string;
+  if (static_refresh_token) {
+    refresh_token = static_refresh_token;
+  } else {
+    const art = await prisma.amcatRefreshToken.create({
+      data: {
+        amcatsessionId: session.id,
+        secret: randomBytes(32).toString("hex"),
+      },
+    });
+    refresh_token = art.id + "." + art.secret;
+  }
 
-  res.status(200).json({ access_token, refresh_token });
+  res
+    .status(200)
+    .json({
+      access_token,
+      refresh_token,
+      expires_in: settings.access_expire_minutes * 60,
+    });
 }
 
 export async function killSessionRequest(
