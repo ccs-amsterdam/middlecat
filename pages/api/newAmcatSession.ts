@@ -48,7 +48,11 @@ export default async function handler(
     return;
   }
 
-  const sessionId = session.id;
+  // The relation between Middlecat session and AmCAT sessions serves to
+  // disconnect the AmCAT sessions when a user signs out from MiddleCat.
+  // For API keys we now disable this behavior.
+  const sessionId = type === "apiKey" ? null : session.id;
+
   const userId = session.userId;
 
   // finally, create the new session
