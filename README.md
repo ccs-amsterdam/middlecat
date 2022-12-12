@@ -102,11 +102,13 @@ library(httr2)
 library(glue)
 ```
 
-The only real input is the URL of the API server that we want to connect to.
+The main input is the URL of the API server that we want to connect to.
 The server will then provide all the details about what MiddleCat server to user.
 If you do not have a server, you can user a demo server thats included in MiddleCat.
 
+```
 server = 'https://middlecat.up.railway.app/api/demo_resource'
+```
 
 To get the middlecat config, simply GET the middlecat endpoint.
 
