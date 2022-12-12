@@ -76,7 +76,7 @@ function ConfirmConnectRequest({
   // is shown to users to authorize, and should not be fake-able.
 
   const clientLabel = client_id;
-  let clientNote = "";
+  let clientNote = " ";
   if (/^localhost/.test(clientURL.host)) {
     // if local application
     clientNote = `This is an application running on your own device. The name (${clientLabel}) is
