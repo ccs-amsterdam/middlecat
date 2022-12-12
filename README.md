@@ -147,7 +147,7 @@ auth_params = list(resource=server, refresh="static")
 
 client = oauth_client(id = client_id,
                       token_url = token_url)
-tokens = oauth_flow_auth_code(client = oc,
+tokens = oauth_flow_auth_code(client = client,
                               auth_url = auth_url,
                               pkce = TRUE,
                               auth_params = auth_params)

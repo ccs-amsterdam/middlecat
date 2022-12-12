@@ -64,7 +64,7 @@ function ConfirmConnectRequest({
   const code_challenge = asSingleString(q.code_challenge);
   const resource = asSingleString(q.resource);
   const scope = asSingleString(q.scope || "");
-  let refresh_rotate = q.static_refresh !== "static";
+  let refresh_rotate = q.refresh !== "static";
 
   const clientURL = new URL(redirect_uri);
   const serverURL = new URL(resource);
@@ -75,9 +75,16 @@ function ConfirmConnectRequest({
   // client id and redirect_uri is important because the client id
   // is shown to users to authorize, and should not be fake-able.
 
-  let clientLabel = client_id;
+  const clientLabel = client_id;
   let clientNote = "";
-  if (!/^localhost/.test(clientURL.host)) {
+  if (/^localhost/.test(clientURL.host)) {
+    // if local application
+    clientNote = `This is an application running on your own device. The name (${clientLabel}) is
+      set by this application, and we cannot verify its legitimacy. Only authorize if you were
+      using and trust this application`;
+    // When client is localhost, the given client ID will be shown together
+    // with the notification that an application on the user's own device wants to connect
+  } else {
     // if browserclient
     if (client_id !== clientURL.host) {
       return <div>Invalid request</div>;
@@ -85,14 +92,6 @@ function ConfirmConnectRequest({
     refresh_rotate = true; // browser client must use refresh rotation
     clientNote = `This is a web application. Any website can access your account on AmCAT servers
     if you let them. Only authorize if you were using and trust this website.`;
-  } else {
-    // if local application
-    clientLabel = `${client_id}`;
-    clientNote = `This is an application running on your own device. The name (${clientLabel}) is
-      set by this application, and we cannot verify its legitimacy. Only authorize if you were
-      using and trust this application`;
-    // When client is localhost, the given client ID will be shown together
-    // with the notification that an application on the user's own device wants to connect
   }
 
   const acceptToken = () => {
