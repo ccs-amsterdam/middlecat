@@ -73,9 +73,11 @@ model AmcatSession {
   userId          String
   type            Type                   // either "browser" or "apiKey". For displaying sessions to user
   label           String                 // for diplaying sessions to user
+  createdOn       String                 // details about when and on what device session was created
+  createdAt       DateTime  @default(now())
   clientId        String                 // id of client, generally the url host
   resource        String                 // The specific AmCAT service + server 
-  scope           String                 // To be added. Most authorization will be handled by server, but read-only api keys sound nice
+  scope           String                 // Most authorization will be handled by server, but read-only api keys sound nice
   expires         DateTime               // ultimate session expiration date
   refreshRotate   Boolean                // should refresh tokens be rotated?
   refreshExpires  DateTime               // refreshing expires

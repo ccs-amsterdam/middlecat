@@ -1,33 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "../../functions/prismadb";
-import { unstable_getServerSession } from "next-auth";
-import { authOptions } from "./auth/[...nextauth]";
 import { randomBytes } from "crypto";
 import settings from "../../functions/settings";
-import { getCsrfToken } from "next-auth/react";
+import createdOnDetails from "../../functions/createdOnDetails";
+import getSafeSession from "../../functions/getSafeSession";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (req.method !== "POST") {
-    res.status(405).send({ message: "Only POST requests allowed" });
-    return;
-  }
-
-  const session = await unstable_getServerSession(req, res, authOptions);
-  if (!session?.user?.email) {
-    res.status(403).send("Need to be signed in");
-    return;
-  }
-
-  // double check, because it seems that it can be (or used to be) more complicated.
-  // But I assume getCsrfToken already checks the hash, so this should work.
-  const token = await getCsrfToken({ req });
-  if (token !== req.headers["x-csrf-token"]) {
-    res.status(403).send("Invalid csrf token");
-    return;
-  }
+  const session = await getSafeSession(req, res);
+  if (!session?.id) return res.status(500);
 
   const {
     clientId,
@@ -39,6 +22,7 @@ export default async function handler(
     scope,
     refreshRotate,
   } = req.body || {};
+
   if (!clientId || !resource || !state || !codeChallenge || !label || !type) {
     res.status(404).send("Invalid request");
     return;
@@ -54,6 +38,7 @@ export default async function handler(
   const sessionId = type === "apiKey" ? null : session.id;
 
   const userId = session.userId;
+  const createdOn = createdOnDetails(req.headers["user-agent"] || "");
 
   // finally, create the new session
   const amcatsession = await prisma.amcatSession.create({
@@ -61,6 +46,7 @@ export default async function handler(
       sessionId,
       type,
       label,
+      createdOn,
       userId,
       clientId,
       resource,

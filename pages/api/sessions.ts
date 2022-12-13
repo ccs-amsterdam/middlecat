@@ -16,23 +16,29 @@ export default async function handler(
 
   const amcatSessions = await prisma.amcatSession.findMany({
     where: { userId: session.userId },
+    orderBy: {
+      expires: "asc",
+    },
   });
 
   const browser: BrowserSession[] = [];
   const apiKey: ApiKeySession[] = [];
 
   for (let s of amcatSessions) {
-    const { label, resource, expires, sessionId, id } = s;
+    const { label, resource, expires, sessionId, id, createdOn, createdAt } = s;
     const current = sessionId === session.id;
     if (s.type === "browser")
       browser.push({
         label,
+        createdOn,
+        createdAt,
         resource,
         id,
         sessionId,
         current,
       });
-    if (s.type === "apiKey") apiKey.push({ label, resource, expires, id });
+    if (s.type === "apiKey")
+      apiKey.push({ label, createdOn, createdAt, resource, expires, id });
   }
   res.status(200).json({ browser, apiKey });
 }

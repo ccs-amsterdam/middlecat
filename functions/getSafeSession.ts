@@ -1,0 +1,28 @@
+import type { NextApiRequest, NextApiResponse } from "next";
+import { getCsrfToken } from "next-auth/react";
+import { unstable_getServerSession } from "next-auth";
+
+import { authOptions } from "../pages/api/auth/[...nextauth]";
+
+export default async function getSafeSession(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  if (req.method !== "POST") {
+    return res.status(405).send({ message: "Only POST requests allowed" });
+  }
+
+  const session = await unstable_getServerSession(req, res, authOptions);
+  if (!session?.user?.email) {
+    return res.status(403).send("Need to be signed in");
+  }
+  // double check, because it seems that it can be (or used to be) more complicated.
+  // But I assume getCsrfToken already checks the hash, so this should work.
+  const token = await getCsrfToken({ req });
+  if (token !== req.headers["x-csrf-token"]) {
+    res.status(403).send("Invalid csrf token");
+    return;
+  }
+
+  return session;
+}

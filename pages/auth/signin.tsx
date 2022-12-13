@@ -36,7 +36,7 @@ export default function SignIn({ providers, csrfToken }: Props) {
 
   return (
     <div className="Container Narrow">
-      <div>
+      <div style={{ textAlign: "center" }}>
         {status === "loading" ? (
           <div className="Loader" />
         ) : (
@@ -65,7 +65,7 @@ function Providers({ providers, csrfToken }: Props) {
         );
       })}
       {providers.email && Object.values(providers).length > 1 && (
-        <div className="Divider">
+        <div className="Divider SecondaryColor">
           <div>OR</div>
         </div>
       )}

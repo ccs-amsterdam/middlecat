@@ -6,10 +6,11 @@ import GoogleProvider from "next-auth/providers/google";
 import GithubProvider from "next-auth/providers/github";
 import EmailProvider from "next-auth/providers/email";
 import { AdapterUser } from "next-auth/adapters";
-import { JsonWebTokenError } from "jsonwebtoken";
+import { NextApiRequest, NextApiResponse } from "next";
 
-// import AppleProvider from "next-auth/providers/apple"
-// import EmailProvider from "next-auth/providers/email"
+export default async function auth(req: NextApiRequest, res: NextApiResponse) {
+  return await NextAuth(req, res, authOptions);
+}
 
 // For more information on each option (and a full list of options) go to
 // https://next-auth.js.org/configuration/options
@@ -179,5 +180,3 @@ async function fillEmptyUserDetails(
     data: { name, image },
   });
 }
-
-export default NextAuth(authOptions);

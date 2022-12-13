@@ -40,10 +40,12 @@ body {
 }
 
 .Page {
+  display: flex;
+  flex-direction: column;
   font-size: 1.4rem;
-  height: 100%;
   width: 100%;
-  text-align: justify;
+  height: 100%;
+  ''text-align: justify;
 }
 
 h1,
@@ -54,22 +56,25 @@ h4 {
 }
 
 .Header {
-  color: white;
-  background: #222;
   padding: 1rem;
-  margin-bottom: 3rem;
   text-align: center;
+  position: relative;
 }
 
-.Header .Name {
+.Header h2,
+h3 {
   font-size: 4rem;
   font-weight: 900;
   margin-bottom: 0px;
   margin-top: 1rem;
   line-height: 3.5rem;
 }
-.Header .Slogan {
-  color: var(--primary);
+
+.Header h3 {
+  font-size: 3rem;
+}
+
+.Header h4 {
   font-size: 1.2rem;
   margin-top: 0px;
   margin-bottom: 1rem;
@@ -85,7 +90,16 @@ h4 {
   flex-direction: column;
 }
 
-.Container.Narrow {
+.Dark {
+  color: white;
+  background: #222;
+}
+
+.FlexAuto {
+  flex: 1 1 auto;
+}
+
+.Narrow {
   max-width: 400px;
 }
 
@@ -289,24 +303,71 @@ button:hover {
 }
 
 .SessionData {
-  display: grid;
-  margin-top: 2rem;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  margin-top: 5rem;
 }
 
-.AmcatSession {
-  border: 1px solid var(--secondary);
-  border-radius: 10px;
-  padding: 1rem;
+.AmcatSessions {
+  min-height: 300px;
+  padding: 2rem;
+  padding-top: 4rem;
+}
+.AmcatSessions p {
+  color: var(--primary);
 }
 .AmcatSessions p {
   font-size: 1.3rem;
 }
+
+.AmcatSession {
+  display: flex;
+  justify-content: space-between;
+  border: 1px solid var(--secondary);
+  border-radius: 10px;
+  line-height: 100%;
+  width: auto;
+  margin: 0.5rem auto;
+  max-width: 80rem;
+}
+
 .AmcatSession.Current {
   background: var(--primary);
 }
-
-.AmcatSessions {
-  margin-top: 3rem;
-  margin: 1rem;
+.AmcatSession .Details {
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  line-height: 100%;
+}
+.AmcatSession .Details * {
+  padding: 0.5rem;
+  margin: auto 0rem auto 0.5rem;
+}
+.AmcatSession .Buttons {
+  background: transparent;
+  display: flex;
+  justify-content: flex-end;
+}
+.AmcatSession .Context {
+  min-width: 20rem;
+}
+.AmcatSession .Label {
+  flex: 1 1 auto;
+  text-align: center;
+}
+.AmcatSession .CloseIcon {
+  height: 100%;
+  width: 100%;
+}
+.AmcatSession button {
+  background: transparent;
+  padding: 0.5rem;
+  margin: 0.3rem;
+  margin-left: 0;
+}
+.AmcatSession .ValidUntilButton {
+  padding: 0.1rem 0.5rem;
+}
+.AmcatSession button:hover {
+  background: var(--primary);
 }

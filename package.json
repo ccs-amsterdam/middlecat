@@ -24,11 +24,13 @@
     "pkce-challenge": "^3.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-icons": "^4.7.1"
+    "react-icons": "^4.7.1",
+    "ua-parser-js": "^1.0.32"
   },
   "devDependencies": {
     "@types/node": "^17",
     "@types/react": "^18.0.15",
+    "@types/ua-parser-js": "^0.7.36",
     "prisma": "^4.6.1",
     "typescript": "^4"
   }

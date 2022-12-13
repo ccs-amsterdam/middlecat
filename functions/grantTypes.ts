@@ -23,27 +23,22 @@ export async function authorizationCodeRequest(
   const [id, secret] = code.split(".");
 
   const session = await prisma.amcatSession.findFirst({
-    where: { id },
+    where: { id, secret, codeChallenge },
     include: { user: true },
   });
 
   if (!session) {
-    return res.status(401).send({ message: "Invalid token request 1" });
+    return res.status(401).send({ message: "Invalid token request" });
   }
 
-  if (
-    session.codeChallenge !== codeChallenge ||
-    session.secret !== secret ||
-    session.secretUsed ||
-    session.secretExpires < new Date(Date.now())
-  ) {
+  if (session.secretUsed || session.secretExpires < new Date(Date.now())) {
     // Reasons for deleting the session
-    // - Session can be compromised if codeChallenge failed or secret has already been used
+    // - If secret already used, could be that bad actor was first
     // - If the secret expired, the session can never be started
     await prisma.amcatSession.delete({
       where: { id: session.id },
     });
-    return res.status(401).send({ message: "Invalid token request 2" });
+    return res.status(401).send({ message: "Invalid token request" });
   }
 
   // authorization code has now been validated. We set secretUsed to true
@@ -152,10 +147,9 @@ export async function createTokens(
     middlecat,
   });
 
+  const refresh_rotate = !static_refresh_token;
   let refresh_token: string;
-  if (static_refresh_token) {
-    refresh_token = static_refresh_token;
-  } else {
+  if (refresh_rotate) {
     const art = await prisma.amcatRefreshToken.create({
       data: {
         amcatsessionId: session.id,
@@ -163,15 +157,21 @@ export async function createTokens(
       },
     });
     refresh_token = art.id + "." + art.secret;
+  } else {
+    refresh_token = static_refresh_token;
   }
 
-  res
-    .status(200)
-    .json({
-      access_token,
-      refresh_token,
-      expires_in: settings.access_expire_minutes * 60,
-    });
+  // oauth typically uses expires_in in seconds as a relative offset (due to local time issues).
+  // we subtract 5 seconds because of possible delay in setting expires_in and the client receiving it
+  const expires_in = settings.access_expire_minutes * 60 - 5;
+
+  res.status(200).json({
+    token_type: "bearer",
+    access_token,
+    refresh_token,
+    refresh_rotate,
+    expires_in,
+  });
 }
 
 export async function killSessionRequest(
