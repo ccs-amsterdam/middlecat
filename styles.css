@@ -346,6 +346,8 @@ button:hover {
 .AmcatSession .Buttons {
   background: transparent;
   display: flex;
+  margin: 0.3rem;
+  gap: 0.3rem;
   justify-content: flex-end;
 }
 .AmcatSession .Context {
@@ -362,8 +364,8 @@ button:hover {
 .AmcatSession button {
   background: transparent;
   padding: 0.5rem;
-  margin: 0.3rem;
-  margin-left: 0;
+
+  height: 100%;
 }
 .AmcatSession .ValidUntilButton {
   padding: 0.1rem 0.5rem;

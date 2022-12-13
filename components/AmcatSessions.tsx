@@ -58,6 +58,7 @@ export default function AmcatSessions({ session, csrfToken }: props) {
         {sessionData.browser.map((session) => {
           return (
             <BrowserSessionRow
+              key={session.id}
               session={session}
               closeSessions={closeSessions}
             />
@@ -73,7 +74,11 @@ export default function AmcatSessions({ session, csrfToken }: props) {
 
         {sessionData.apiKey.map((session) => {
           return (
-            <ApiKeySessionRow session={session} closeSessions={closeSessions} />
+            <ApiKeySessionRow
+              key={session.id}
+              session={session}
+              closeSessions={closeSessions}
+            />
           );
         })}
       </div>
