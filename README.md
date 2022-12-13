@@ -93,9 +93,9 @@ the scenes, so the user.api should be all that you really need.
 
 The AuthForm is a component for a Login/Logout screen. It is also possible to make a custom screen, for which useMiddlecat returns the signIn and signOut methods and a loading state.
 
-# Making new clients (R, Python, etc.)
+# Building new clients (R, Python, etc.)
 
-MiddleCat (mostly) follows the OAuth2.0 protocol, which should have built in support in most programming environments. As an example we'll show how to do this with the httr2 package in R.
+MiddleCat follows the OAuth2.0 protocol, which should have built in support in most programming environments. As an example we'll show how to do this with the httr2 package in R.
 
 ```
 library(httr2)
@@ -107,7 +107,7 @@ The server will then provide all the details about what MiddleCat server to user
 If you do not have a server, you can user a demo server thats included in MiddleCat.
 
 ```
-server = 'https://middlecat.up.railway.app/api/demo_resource'
+server = "https://middlecat.up.railway.app/api/demo_resource"
 ```
 
 To get the middlecat config, simply GET the middlecat endpoint.
@@ -135,10 +135,8 @@ token_url = glue("{middlecat}/api/token")
 There are three main parameters/settings to set:
 
 - **client_id**. The client ID is free to choose, and will be the name of the application shown
-  to the user. (the user is informed that it's their responsibility to verify that
-  they were indeed using your application and trust the request)
-- **pkce**. MiddleCat requires using PKCE. This is often just a matter of enabling it (and otherwise
-  not too hard to implement)
+  to the user in the authentication flow. Since we support third-party clients, it is up to the user to determine whether they trust the authentication request (though we'll add ways for servers to indicate trusted clients).
+- **pkce**. MiddleCat requires using PKCE with the (standard) base64url encoded sha256 hash. httr2 supports this out of the box.
 - **resource**. The call to auth_url should include the 'resource' parameter, which should be the
   URL of the AmCAT server.
   **refresh = "static"**. This disables refresh token rotation, which does not yet seem to be supported by httr2.
