@@ -85,7 +85,7 @@ export async function refreshTokenRequest(
   }
 
   if (arf.amcatsession.refreshRotate) {
-    // invalidate previous refresh token (only if refresh token rotation is used)
+    // if refresh token rotation is used, invalidate current refresh token
     await prisma.amcatRefreshToken.update({
       where: { id: arf.id },
       data: { invalidSince: new Date(Date.now()) },
@@ -147,9 +147,8 @@ export async function createTokens(
     middlecat,
   });
 
-  const refresh_rotate = !static_refresh_token;
-  let refresh_token: string;
-  if (refresh_rotate) {
+  let refresh_token = static_refresh_token;
+  if (!refresh_token) {
     const art = await prisma.amcatRefreshToken.create({
       data: {
         amcatsessionId: session.id,
@@ -157,8 +156,6 @@ export async function createTokens(
       },
     });
     refresh_token = art.id + "." + art.secret;
-  } else {
-    refresh_token = static_refresh_token;
   }
 
   // oauth typically uses expires_in in seconds as a relative offset (due to local time issues).
@@ -169,7 +166,7 @@ export async function createTokens(
     token_type: "bearer",
     access_token,
     refresh_token,
-    refresh_rotate,
+    refresh_rotate: session.refreshRotate,
     expires_in,
   });
 }

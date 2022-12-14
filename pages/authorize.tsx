@@ -58,7 +58,8 @@ function ConfirmConnectRequest({
     !q.resource ||
     (q.session_type &&
       !["api_key", "browser"].includes(asSingleString(q.session_type))) ||
-    (q.refresh && !["static", "rotate"].includes(asSingleString(q.refresh)))
+    (q.refresh_mode &&
+      !["static", "rotate"].includes(asSingleString(q.refresh_mode)))
   ) {
     return <div style={{ textAlign: "center" }}>Invalid request</div>;
   }
@@ -70,7 +71,7 @@ function ConfirmConnectRequest({
   const resource = asSingleString(q.resource);
   const scope = asSingleString(q.scope || "");
   const type = q.session_type === "api_key" ? "apiKey" : "browser";
-  let refresh_rotate = q.refresh !== "static";
+  let refresh_rotate = q.refresh_mode !== "static";
 
   const clientURL = new URL(redirect_uri);
   const serverURL = new URL(resource);

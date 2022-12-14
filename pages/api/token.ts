@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "../../functions/prismadb";
 import NextCors from "nextjs-cors";
+import rmExpiredSessions from "../../functions/rmExpiredSessions";
 
 import {
   authorizationCodeRequest,
@@ -23,24 +23,8 @@ export default async function handler(
     return res.status(405).send({ message: "Only POST requests allowed" });
   }
 
-  // whenever the token endpoint is called, first delete any
-  // expired sessions
-  await prisma.amcatSession.deleteMany({
-    where: {
-      OR: [
-        {
-          expires: {
-            lte: new Date(Date.now()),
-          },
-        },
-        {
-          refreshExpires: {
-            lte: new Date(Date.now()),
-          },
-        },
-      ],
-    },
-  });
+  // whenever the token endpoint is called, first delete any expired sessions
+  await rmExpiredSessions();
 
   if (req.body.grant_type === "authorization_code") {
     return await authorizationCodeRequest(res, req);

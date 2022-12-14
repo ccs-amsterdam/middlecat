@@ -3,6 +3,7 @@ import { unstable_getServerSession } from "next-auth";
 import { authOptions } from "./auth/[...nextauth]";
 import prisma from "../../functions/prismadb";
 import { BrowserSession, ApiKeySession } from "../../types";
+import rmExpiredSessions from "../../functions/rmExpiredSessions";
 
 export default async function handler(
   req: NextApiRequest,
@@ -13,6 +14,9 @@ export default async function handler(
     res.status(403).send("Need to be signed in");
     return;
   }
+
+  // first delete any expired sessions
+  await rmExpiredSessions();
 
   const amcatSessions = await prisma.amcatSession.findMany({
     where: { userId: session.userId },
