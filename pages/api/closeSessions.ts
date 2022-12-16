@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "../../functions/prismadb";
+import getSafeSession from "../../functions/getSafeSession";
 
 export default async function handler(
   req: NextApiRequest,

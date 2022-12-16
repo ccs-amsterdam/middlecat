@@ -212,7 +212,7 @@ interface AmcatSessionParams {
   scope: string;
   type: string;
   refreshRotate: boolean;
-  expiresIn: number;
+  expiresIn: number | null;
   csrfToken: string | undefined;
 }
 

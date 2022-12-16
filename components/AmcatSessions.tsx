@@ -97,7 +97,10 @@ export default function AmcatSessions({ session, csrfToken }: props) {
             `}
           </style>
           <Popup trigger={<button>- Create API key -</button>}>
-            <CreateApiKey csrfToken={csrfToken} fetchSessions={fetchSessions} />
+            <CreateApiKey
+              csrfToken={csrfToken || ""}
+              fetchSessions={fetchSessions}
+            />
           </Popup>
         </div>
       </div>
@@ -134,6 +137,11 @@ function BrowserSessionRow({
   );
 }
 
+function calcExpiresIn(expires: Date) {
+  const expiresDate = new Date(expires);
+  return Number(expiresDate.getTime() - Date.now());
+}
+
 function ApiKeySessionRow({
   session,
   closeSessions,
@@ -141,8 +149,8 @@ function ApiKeySessionRow({
   session: ApiKeySession;
   closeSessions: (ids: string[]) => void;
 }) {
-  const [expiresIn, setExpiresIn] = useState(
-    new Date(session.expires) - Date.now()
+  const [expiresIn, setExpiresIn] = useState<number>(
+    calcExpiresIn(session.expires)
   );
   const date = new Date(session.createdAt);
 
@@ -154,7 +162,7 @@ function ApiKeySessionRow({
     : Math.floor(expiresInMinutes);
 
   useEffect(() => {
-    const expiresIn = new Date(session.expires) - Date.now();
+    const expiresIn = calcExpiresIn(session.expires);
     const expiresInChanges = expiresIn % (1000 * 60);
     const timer = setTimeout(() => setExpiresIn(expiresIn), expiresInChanges);
     return () => clearTimeout(timer);
@@ -237,7 +245,7 @@ function CreateApiKey({
         }
       `}</style>
       <form
-        onSubmit={(e) => {
+        onSubmit={(e: any) => {
           e.preventDefault();
           const formData = new FormData(e.target);
           console.log(formData);
