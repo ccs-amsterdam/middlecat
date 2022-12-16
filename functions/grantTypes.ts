@@ -73,11 +73,12 @@ export async function refreshTokenRequest(
     return res.status(401).send({ message: "Invalid refreshtoken request" });
   }
 
-  const leeway = 2000;
+  const leeway = 10000;
   if (arf.invalidSince && arf.invalidSince < new Date(Date.now() - leeway)) {
     // If refreshRotate is used, and refresh token is used multiple times,
-    // it indicates that the session could be compromised. Due to possible
-    // race conditions, we do allow for a small time window (leeway).
+    // it indicates that the session could be compromised. To not immediately
+    // close a session if an accidental double call is made or when the response
+    // doesn't arrive, we allow for a small time window (leeway)
     await prisma.amcatSession.delete({
       where: { id: arf.amcatsessionId },
     });
@@ -85,23 +86,27 @@ export async function refreshTokenRequest(
   }
 
   if (arf.amcatsession.refreshRotate) {
-    // if refresh token rotation is used, invalidate current refresh token
-    await prisma.amcatRefreshToken.update({
-      where: { id: arf.id },
+    // if refresh token rotation is used, invalidate refresh tokens. Note that we invalidate
+    // all valid tokens for this session, because due to leeway the refresh token
+    // trail could otherwise branch out if a stolen token is used within the leeway period.
+    await prisma.amcatRefreshToken.updateMany({
+      where: { amcatsessionId: arf.amcatsessionId, invalidSince: null },
       data: { invalidSince: new Date(Date.now()) },
     });
   }
 
-  // update refresh expire (we set refreshExpire in the session table becuase
-  // its a bit more efficient when deleting expired sessions on every api/auth/token call)
-  await prisma.amcatSession.update({
-    where: { id: arf.amcatsession.id },
-    data: {
-      refreshExpires: new Date(
-        Date.now() + 1000 * 60 * 60 * settings.refresh_expire_hours
-      ),
-    },
-  });
+  // browser sessions have a refreshExpires value on the amcatsession to kill sessions that
+  // are inactive for too long. This value should be updated on every token refresh.
+  // (for apiKey sessions refreshExpires is disabled, so should stay null)
+  if (arf.amcatsession.type === "browser")
+    await prisma.amcatSession.update({
+      where: { id: arf.amcatsession.id },
+      data: {
+        refreshExpires: new Date(
+          Date.now() + 1000 * 60 * 60 * settings.refresh_expire_hours
+        ),
+      },
+    });
 
   // if refresh token rotation is not used, pass a static refresh token to createTokens
   const static_refresh_token = arf.amcatsession.refreshRotate

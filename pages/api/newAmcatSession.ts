@@ -21,6 +21,7 @@ export default async function handler(
     type,
     scope,
     refreshRotate,
+    expiresIn,
   } = req.body || {};
 
   if (!clientId || !resource || !state || !codeChallenge || !label || !type) {
@@ -39,6 +40,14 @@ export default async function handler(
 
   const userId = session.userId;
   const createdOn = createdOnDetails(req.headers["user-agent"] || "");
+  const expires =
+    expiresIn === null
+      ? new Date(Date.now() + 1000 * 60 * 60 * settings.session_expire_hours)
+      : new Date(Date.now() + 1000 * expiresIn);
+  const refreshExpires =
+    type === "browser"
+      ? new Date(Date.now() + 1000 * 60 * 60 * settings.refresh_expire_hours)
+      : null;
 
   // finally, create the new session
   const amcatsession = await prisma.amcatSession.create({
@@ -51,13 +60,9 @@ export default async function handler(
       clientId,
       resource,
       scope: scope || "",
-      expires: new Date(
-        Date.now() + 1000 * 60 * 60 * settings.session_expire_hours
-      ),
+      expires,
       refreshRotate: refreshRotate ?? true,
-      refreshExpires: new Date(
-        Date.now() + 1000 * 60 * 60 * settings.refresh_expire_hours
-      ),
+      refreshExpires,
       codeChallenge,
       secret: randomBytes(64).toString("hex"),
       secretExpires: new Date(Date.now() + 1000 * 60 * 10), // 10 minutes

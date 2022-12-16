@@ -70,23 +70,27 @@ function ConfirmConnectRequest({
   const code_challenge = asSingleString(q.code_challenge);
   const resource = asSingleString(q.resource);
   const scope = asSingleString(q.scope || "");
-  const type = q.session_type === "api_key" ? "apiKey" : "browser";
-  let refresh_rotate = q.refresh_mode !== "static";
+  const session_type = asSingleString(q.session_type || "");
+  const refresh_mode = asSingleString(q.session_type || "");
+  const expires_in = q.expires_in_sec
+    ? Number(asSingleString(q.expires_in_sec))
+    : null;
 
   const clientURL = new URL(redirect_uri);
   const serverURL = new URL(resource);
+  const type = session_type === "api_key" ? "apiKey" : "browser";
+  const refresh_rotate = refresh_mode !== "static";
+  const localhost = /^localhost/.test(clientURL.host);
 
   // api_key session have more freedom to specify settings,
   // but this is only allowed if requested from localhost
-  const localhost = /^localhost/.test(clientURL.host);
   if (!localhost && type === "apiKey") {
     return (
-      <div>
-        <h4>Invalid authentication request</h4>
+      <InvalidRequestMsg>
         An API key can only be created via OAuth if the redirect_uri is on
         localhost. Note that you can also create API keys manually on the
         MiddleCat website.
-      </div>
+      </InvalidRequestMsg>
     );
   }
 
@@ -109,31 +113,33 @@ function ConfirmConnectRequest({
 
       if (localhost)
         return (
-          <div>
-            <h4>Invalid authentication request</h4>
+          <InvalidRequestMsg>
             No <b>session_type</b> was specified, so it defaults to "browser".
             For a browser session the client_id needs to be identical to the
             origin of the redirect_uri. To create an API key, set{" "}
             <b>session_type=api_key</b>. (this is only possible for localhost
             clients)
-          </div>
+          </InvalidRequestMsg>
         );
       return (
-        <div>
-          <h4>Invalid authentication request</h4>
+        <InvalidRequestMsg>
           For browser sessions the client_id must be identical to the origin of
           the redirect_uri.
-        </div>
+        </InvalidRequestMsg>
       );
     }
     if (!refresh_rotate)
       return (
-        <div>
-          <h4>Invalid authentication request</h4>
+        <InvalidRequestMsg>
           Browser sessions cannot disable refresh token rotation.
-        </div>
+        </InvalidRequestMsg>
       );
-    refresh_rotate = true; // browser client must use refresh rotation
+    if (expires_in)
+      return (
+        <InvalidRequestMsg>
+          Browser sessions cannot set custom expire_in time
+        </InvalidRequestMsg>
+      );
     clientNote = `This is a web application. Any website can access your account on AmCAT servers
     if you let them. Only authorize if you were using and trust this website.`;
   }
@@ -148,6 +154,7 @@ function ConfirmConnectRequest({
       scope,
       type,
       refreshRotate: refresh_rotate,
+      expiresIn: expires_in,
       csrfToken,
     })
       .then((response_url) => {
@@ -205,20 +212,12 @@ interface AmcatSessionParams {
   scope: string;
   type: string;
   refreshRotate: boolean;
+  expiresIn: number;
   csrfToken: string | undefined;
 }
 
 /**
  * We're doing an adjusted oauth2 + PKCE flow.
- *
- * @param redirect_uri The redirect uri domain also serves as the client_id (a client
- *                     such as AmCAT4 react that wants to access an AmCAT resource server). Unlike
- *                     common auth servers, the client_id is not registered in MiddleCat, but
- *                     in the resource server (which should have a /clients endpoint). (MiddleCat
- *                     instead can require resource servers to register)
- * @param resource     The AmCAT resource server.
- * @param state        We use a random state as CSRF protection
- * @param codeChallenge PKCE code challenge
  */
 async function createAmcatSession({
   clientId,
@@ -229,6 +228,7 @@ async function createAmcatSession({
   scope,
   type,
   refreshRotate,
+  expiresIn,
   csrfToken,
 }: AmcatSessionParams): Promise<string> {
   const res = await fetch(`/api/newAmcatSession`, {
@@ -236,7 +236,6 @@ async function createAmcatSession({
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
-      "x-csrf-token": csrfToken || "",
     },
     body: JSON.stringify({
       clientId,
@@ -246,12 +245,13 @@ async function createAmcatSession({
       scope,
       type,
       refreshRotate,
+      expiresIn,
       redirectUri,
       label: clientId,
+      csrfToken,
     }),
   });
 
-  console.log(res);
   const data = await res.json();
   // our authentication code is the id + secret
   const authCode = data.id + "." + data.secret;
@@ -261,4 +261,13 @@ async function createAmcatSession({
 function asSingleString(stringOrArray: string | string[]): string {
   // url parameters are string | string[].
   return Array.isArray(stringOrArray) ? stringOrArray[0] : stringOrArray;
+}
+
+function InvalidRequestMsg({ children }: { children: any }) {
+  return (
+    <div>
+      <h4>Invalid authentication request</h4>
+      {children}
+    </div>
+  );
 }

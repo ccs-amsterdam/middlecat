@@ -1,4 +1,12 @@
-import { CSSProperties, MouseEvent, ReactNode, useEffect, useRef } from "react";
+import {
+  CSSProperties,
+  memo,
+  MouseEvent,
+  ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 interface Props {
   trigger: ReactNode;
@@ -6,41 +14,41 @@ interface Props {
   style?: CSSProperties;
 }
 
-export default function Popup({ trigger, children, style }: Props) {
+function Popup({ trigger, children, style }: Props) {
   const triggerRef = useRef<HTMLDivElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
-  const isOpen = useRef(false);
-  console.log(isOpen.current);
-  function open() {
-    const popup = popupRef.current as any;
-    const trigger = triggerRef.current as any;
-    console.log(isOpen.current);
-    if (!popup || !trigger) return;
-    if (isOpen.current) return;
-    const { x, width, y } = trigger.getBoundingClientRect();
-    popup.style["max-height"] = "100vh";
-    popup.style.padding = "1rem 1rem";
-    popup.style.border = "1px solid black";
-    popup.style.top = y - popup.scrollHeight - 30 + "px";
-    popup.style.left = x - popup.clientWidth + width + "px";
-    popup.style.opacity = 1;
-    popup.style.background = "white";
-    isOpen.current = true;
-  }
-
-  function close() {
-    const popup = popupRef.current as any;
-    if (!popup) return;
-    if (!isOpen.current) return;
-    popup.style["max-height"] = "0px";
-    popup.style.padding = "0rem 1rem";
-    popup.style.border = "0px solid black";
-    popup.style.opacity = 0;
-    popup.style.background = "var(--primary)";
-    isOpen.current = false;
-  }
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    // use useEffect to force this to run client side
+    const popup = popupRef.current as any;
+    const trigger = triggerRef.current as any;
+    if (!popup || !trigger) return;
+
+    if (open) {
+      const { x, width, y } = trigger.getBoundingClientRect();
+      let top = y - popup.scrollHeight - 25;
+
+      top = Math.min(Math.max(0, top), window.innerHeight);
+      let left = x - (popup.clientWidth - width) / 2;
+      left = Math.min(Math.max(0, left), window.innerWidth);
+
+      popup.style["max-height"] = "80vh";
+      popup.style.padding = "1rem 1rem";
+      popup.style.border = "1px solid black";
+      popup.style.top = top + "px";
+      popup.style.left = left + "px";
+      popup.style.opacity = 1;
+    } else {
+      popup.style["max-height"] = "0px";
+      popup.style.padding = "0rem 1rem";
+      popup.style.border = "0px solid black";
+      popup.style.opacity = 0;
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
     function onClick(e: any) {
       const trigger = triggerRef.current;
       const popup = popupRef.current;
@@ -50,51 +58,50 @@ export default function Popup({ trigger, children, style }: Props) {
         !popup.contains(e.target) &&
         !trigger.contains(e.target)
       ) {
-        close();
+        setOpen(false);
       }
     }
     document.addEventListener("click", onClick);
     return () => document.removeEventListener("click", onClick);
-  }, [popupRef]);
+  }, [triggerRef, popupRef, open]);
 
   return (
-    <div
-      style={style || { flex: "1 1 auto" }}
-      ref={triggerRef}
-      onClick={() => (isOpen.current ? close() : open())}
-    >
+    <>
       <style jsx>{`
         .popup {
-          transition: all 0.4s, opacity 0.8s;
+          transition: opacity 0.5s;
           overflow-y: auto;
-          background: var(--primary);
           color: black;
           position: fixed;
           border: 0px solid black;
           max-height: 0px;
           min-width: 20rem;
+          max-width: 80vw;
           padding: 0rem 1rem;
           border-radius: 1rem;
+          background: #01757586;
+          backdrop-filter: blur(5px);
           opacity: 0;
+        }
+        button {
+          border-color: var(--secondary);
         }
         .cancel {
           margin-top: 0.5rem;
         }
       `}</style>
-      {trigger}
+      <div
+        style={{ ...(style || {}) }}
+        ref={triggerRef}
+        onClick={() => setOpen(!open)}
+      >
+        {trigger}
+      </div>
       <div ref={popupRef} className="popup">
         {children}
-
-        <button
-          className="cancel"
-          onClick={(e: any) => {
-            e.stopPropagation();
-            close();
-          }}
-        >
-          Cancel
-        </button>
       </div>
-    </div>
+    </>
   );
 }
+
+export default memo(Popup);
