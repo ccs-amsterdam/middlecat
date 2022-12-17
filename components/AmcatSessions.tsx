@@ -1,4 +1,5 @@
 import { Session } from "next-auth";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { ApiKeySession, BrowserSession, SessionData } from "../types";
 import Popup from "./Popup";
@@ -6,9 +7,10 @@ import Popup from "./Popup";
 interface props {
   session: Session | null;
   csrfToken: string | undefined;
+  host: string;
 }
 
-export default function AmcatSessions({ session, csrfToken }: props) {
+export default function AmcatSessions({ session, csrfToken, host }: props) {
   const [sessionData, setSessionData] = useState<SessionData>();
 
   async function fetchSessions() {
@@ -96,10 +98,11 @@ export default function AmcatSessions({ session, csrfToken }: props) {
               }
             `}
           </style>
-          <Popup trigger={<button>- Create API key -</button>}>
+          <Popup trigger={<button>Create API key</button>}>
             <CreateApiKey
               csrfToken={csrfToken || ""}
               fetchSessions={fetchSessions}
+              host={host}
             />
           </Popup>
         </div>
@@ -204,29 +207,67 @@ function ApiKeySessionRow({
 function CreateApiKey({
   csrfToken,
   fetchSessions,
+  host,
 }: {
   csrfToken: string;
   fetchSessions: () => void;
+  host: string;
 }) {
+  const [resourceError, setResourceError] = useState<string>();
+  const today = new Date(Date.now());
+  const defaultDate = new Date(Date.now());
+  defaultDate.setFullYear(defaultDate.getFullYear() + 1);
+
+  async function onSubmit(e: any) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+
+    if (!(await validateResource(formData.get("resource")))) return;
+
+    console.log(formData);
+  }
+
+  async function validateResource(url: string) {
+    return await fetch(url + "/middlecat")
+      .then((res) => res.json())
+      .then((settings) => {
+        if (settings.middlecat_url !== host) {
+          setResourceError(
+            `Server uses other MiddleCat: ${settings.middlecat_url}`
+          );
+          return false;
+        }
+        return true;
+      })
+      .catch((e) => {
+        console.error(e);
+        setResourceError("Could not connect to server");
+        return false;
+      });
+  }
+
   return (
     <div>
       <style jsx>{`
         form {
-          min-width: 30rem;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          margin: 2rem;
+          width: 25rem;
+          max-width: 90vw;
+
+          margin: 1rem;
+        }
+        .field {
+          margin-bottom: 1.5rem;
+          text-align: center;
+          width: 100%;
+          max-width: 25rem;
         }
         label {
           margin: 0.2rem;
         }
         input {
           width: 100%;
-          max-width: 25rem;
           padding: 0.3rem;
           border-radius: 5px;
-          margin-bottom: 1.5rem;
           border: 1px solid white;
           text-align: center;
         }
@@ -238,47 +279,72 @@ function CreateApiKey({
         }
         .checkbox {
           display: flex;
+          justify-content: center;
         }
         .checkbox input {
           height: 1.8rem;
           width: 1.8rem;
         }
+        .error {
+          width: 100%;
+          background: #813030;
+          border-radius: 5px;
+          padding: 0rem 1rem;
+          text-align: center;
+        }
+        button {
+          margin-top: 2rem;
+        }
       `}</style>
-      <form
-        onSubmit={(e: any) => {
-          e.preventDefault();
-          const formData = new FormData(e.target);
-          console.log(formData);
-        }}
-      >
-        <input name="csrfToken" type="hidden" defaultValue={csrfToken} />
-        <label htmlFor="label">Label</label>
-        <input
-          type="text"
-          id="label"
-          name="label"
-          title="URL should start with http or https"
-          pattern=".{5,50}"
-          placeholder="A label to remember it by"
-          required
-        />
-        <label htmlFor="resource">Server</label>
-        <input
-          type="url"
-          id="resource"
-          name="resource"
-          placeholder="https://amcat-server.com"
-          required
-          onBlur={(e) => {
-            if (e.target.checkValidity()) {
-            }
-          }}
-        />
-        <div className="checkbox">
+      <form onSubmit={onSubmit}>
+        <div className="field">
+          <input name="csrfToken" type="hidden" defaultValue={csrfToken} />
+          <label htmlFor="resource">Server</label>
+          <input
+            type="url"
+            id="resource"
+            name="resource"
+            placeholder="https://amcat-server.com"
+            required
+            onBlur={(e) => {
+              if (!e.target.reportValidity()) return;
+              validateResource(e.target.value);
+            }}
+            onChange={() => setResourceError(undefined)}
+          />
+
+          <div className="error">{resourceError}</div>
+        </div>
+        <div className="field">
+          <label htmlFor="label">Label</label>
+          <input
+            type="text"
+            id="label"
+            name="label"
+            title="Provide a label between 5 and 50 characters long"
+            pattern=".{5,50}"
+            placeholder="pick a label"
+            required
+          />
+        </div>
+
+        <div className="field checkbox">
           <label htmlFor="rotate">Rotate refresh tokens</label>
           <input type="checkbox" id="rotate" name="rotating" />
         </div>
-        <button>submit</button>
+        <div className="field">
+          <label htmlFor="expires">Expires</label>
+          <input
+            type="datetime-local"
+            id="expires"
+            name="expires_date"
+            required
+            defaultValue={defaultDate.toISOString().slice(0, 16)}
+            min={today.toISOString().slice(0, 16)}
+          />
+        </div>
+
+        <button id="submit">create</button>
       </form>
     </div>
   );

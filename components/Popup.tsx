@@ -27,11 +27,13 @@ function Popup({ trigger, children, style }: Props) {
 
     if (open) {
       const { x, width, y } = trigger.getBoundingClientRect();
-      let top = y - popup.scrollHeight - 25;
 
-      top = Math.min(Math.max(0, top), window.innerHeight);
+      let top = y - popup.scrollHeight - 25;
       let left = x - (popup.clientWidth - width) / 2;
-      left = Math.min(Math.max(0, left), window.innerWidth);
+
+      // Ensure popup doesn't go off screen
+      top = Math.min(Math.max(0, top), window.innerHeight - popup.scrollHeight);
+      left = Math.min(Math.max(0, left), window.innerWidth - popup.clientWidth);
 
       popup.style["max-height"] = "80vh";
       popup.style.padding = "1rem 1rem";
@@ -71,7 +73,7 @@ function Popup({ trigger, children, style }: Props) {
         .popup {
           transition: opacity 0.5s;
           overflow-y: auto;
-          color: black;
+          color: white;
           position: fixed;
           border: 0px solid black;
           max-height: 0px;
@@ -79,7 +81,7 @@ function Popup({ trigger, children, style }: Props) {
           max-width: 80vw;
           padding: 0rem 1rem;
           border-radius: 1rem;
-          background: #01757586;
+          background: #017575c0;
           backdrop-filter: blur(5px);
           opacity: 0;
         }
