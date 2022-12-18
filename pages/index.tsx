@@ -3,12 +3,10 @@ import AmcatSessions from "../components/AmcatSessions";
 
 interface Props {
   csrfToken: string | undefined;
-  host: string;
 }
 
-export default function IndexPage({ csrfToken, host }: Props) {
+export default function IndexPage({ csrfToken }: Props) {
   const { data: session, status } = useSession();
-  console.log(host);
   if (status === "loading") return null;
 
   return (
@@ -37,7 +35,7 @@ export default function IndexPage({ csrfToken, host }: Props) {
         </div>
       </div>
       <div className="">
-        <AmcatSessions session={session} csrfToken={csrfToken} host={host} />
+        <AmcatSessions session={session} csrfToken={csrfToken} />
       </div>
     </>
   );
@@ -45,8 +43,7 @@ export default function IndexPage({ csrfToken, host }: Props) {
 
 export async function getServerSideProps(context: any) {
   const csrfToken = await getCsrfToken(context);
-  const host = process.env.NEXTAUTH_URL;
   return {
-    props: { csrfToken, host },
+    props: { csrfToken },
   };
 }

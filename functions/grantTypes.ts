@@ -27,25 +27,26 @@ export async function authorizationCodeRequest(
     include: { user: true },
   });
 
-  if (!session) {
+  if (!session || !session.secret) {
+    // if session doesn't have a secret, it means it doesn't use oauth
     return res.status(401).send({ message: "Invalid token request" });
   }
 
-  if (session.secretUsed || session.secretExpires < new Date(Date.now())) {
+  if (!session.secretExpires || session.secretExpires < new Date(Date.now())) {
     // Reasons for deleting the session
-    // - If secret already used, could be that bad actor was first
-    // - If the secret expired, the session can never be started
+    // - If secret already used (no secretExpires), could be that bad actor was first
+    // - If the secret expired, the session can never be started anyway
     await prisma.amcatSession.delete({
       where: { id: session.id },
     });
     return res.status(401).send({ message: "Invalid token request" });
   }
 
-  // authorization code has now been validated. We set secretUsed to true
-  // so that it cannot be used again
+  // authorization code has now been validated. We remove the secret stuff
+  // to indicate that it can no longer be used.
   await prisma.amcatSession.update({
     where: { id: session.id },
-    data: { secretUsed: true },
+    data: { secretExpires: null },
   });
 
   await createTokens(res, req, session, session.user);

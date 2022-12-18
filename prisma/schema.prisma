@@ -81,10 +81,9 @@ model AmcatSession {
   expires         DateTime               // ultimate session expiration date
   refreshRotate   Boolean                // should refresh tokens be rotated?
   refreshExpires  DateTime?              // for browser sessions the refresh token can expire. For api_keys this is disabled
-  secret          String    @db.Text     // authorization code = id + '.' + secret. 
-  secretExpires   DateTime                 // secret code expiration date
-  secretUsed      Boolean   @default(false) // secret code can only be used once. we stop the session if used twice to catch malicious reuse 
-  codeChallenge   String    @db.Text     // PKCE code challenge for authorization code grant
+  secret          String?   @db.Text     // authorization code = id + '.' + secret. 
+  secretExpires   DateTime?              // secret code expiration date
+  codeChallenge   String?   @db.Text     // PKCE code challenge for authorization code grant
   refreshTokens   AmcatRefreshToken[]
 
   session         Session? @relation(fields: [sessionId], references: [id], onDelete: Cascade)

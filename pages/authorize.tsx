@@ -168,7 +168,7 @@ function ConfirmConnectRequest({
       <div className="ConnectionDetails">
         <div className="User">
           {user?.image ? (
-            <img className="Image" src={user.image} alt="profile" />
+            <img className="Image" src={user.image} alt="" />
           ) : (
             <FaUser className="MissingImage" />
           )}
@@ -217,7 +217,7 @@ interface AmcatSessionParams {
 }
 
 /**
- * We're doing an adjusted oauth2 + PKCE flow.
+ * Set up oauth2 + PKCE flow.
  */
 async function createAmcatSession({
   clientId,
@@ -254,8 +254,7 @@ async function createAmcatSession({
 
   const data = await res.json();
   // our authentication code is the id + secret
-  const authCode = data.id + "." + data.secret;
-  return `${redirectUri}?code=${authCode}&state=${state}`;
+  return `${redirectUri}?code=${data.authCode}&state=${data.state}`;
 }
 
 function asSingleString(stringOrArray: string | string[]): string {

@@ -32,10 +32,10 @@ function Popup({ trigger, children, style }: Props) {
       let left = x - (popup.clientWidth - width) / 2;
 
       // Ensure popup doesn't go off screen
-      top = Math.min(Math.max(0, top), window.innerHeight - popup.scrollHeight);
-      left = Math.min(Math.max(0, left), window.innerWidth - popup.clientWidth);
+      top = Math.max(0, Math.min(top, window.innerHeight - popup.scrollHeight));
+      left = Math.max(0, Math.min(left, window.innerWidth - popup.clientWidth));
 
-      popup.style["max-height"] = "80vh";
+      popup.style["max-height"] = "95vh";
       popup.style.padding = "1rem 1rem";
       popup.style.border = "1px solid black";
       popup.style.top = top + "px";
@@ -72,12 +72,12 @@ function Popup({ trigger, children, style }: Props) {
       <style jsx>{`
         .popup {
           transition: opacity 0.5s;
-          overflow-y: auto;
+          overflow: auto;
           color: white;
           position: fixed;
           border: 0px solid black;
           max-height: 0px;
-          min-width: 20rem;
+          min-width: min(25rem, 80vw);
           max-width: 80vw;
           padding: 0rem 1rem;
           border-radius: 1rem;

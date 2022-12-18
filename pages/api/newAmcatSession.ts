@@ -4,7 +4,13 @@ import { randomBytes } from "crypto";
 import settings from "../../functions/settings";
 import createdOnDetails from "../../functions/createdOnDetails";
 import getSafeSession from "../../functions/getSafeSession";
+import { createTokens } from "../../functions/grantTypes";
 
+/**
+ * Creates an AmCAT session.
+ * if oauth is true, returns the authCode and state.
+ * Otherwise, immediately returns the tokens
+ */
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -14,7 +20,6 @@ export default async function handler(
 
   const {
     clientId,
-    resource,
     state,
     codeChallenge,
     label,
@@ -22,14 +27,42 @@ export default async function handler(
     scope,
     refreshRotate,
     expiresIn,
+    oauth = true,
   } = req.body || {};
 
-  if (!clientId || !resource || !state || !codeChallenge || !label || !type) {
+  let { resource } = req.body || {};
+
+  if (!clientId || !resource || !label || !type) {
     res.status(404).send("Invalid request");
+    return;
+  }
+  if (oauth && (!codeChallenge || !state)) {
+    // if oauth is false, the session is only created, and no secret/codechallenge will
+    // be set, so that it cannot be activated with an authorization code request. If it's
+    // true, request must have a state and codeChallenge for a secure OAuth flow
+    res.status(404).send("Invalid OAuth request");
     return;
   }
   if (type !== "browser" && type !== "apiKey") {
     res.status(404).send("Invalid type");
+    return;
+  }
+
+  // check with the resource server. Here we could also implement more
+  // security measures, such as server indicating which browser clients to trust and
+  // whether api keys are allowed.
+  resource = resource.replace(/\/$/, ""); // standardize
+  try {
+    const config_res = await fetch(resource + "/middlecat");
+    const config = await config_res.json();
+    if (config.middlecat_url !== process.env.NEXTAUTH_URL) {
+      res
+        .status(404)
+        .send(`Server uses other Middlecat: ${config.middlecat_url}`);
+      return;
+    }
+  } catch (e) {
+    res.status(404).send("Could not connect to server");
     return;
   }
 
@@ -63,11 +96,20 @@ export default async function handler(
       expires,
       refreshRotate: refreshRotate ?? true,
       refreshExpires,
-      codeChallenge,
-      secret: randomBytes(64).toString("hex"),
-      secretExpires: new Date(Date.now() + 1000 * 60 * 10), // 10 minutes
+      codeChallenge: oauth ? codeChallenge : null,
+      secret: oauth ? randomBytes(64).toString("hex") : null,
+      secretExpires: oauth ? new Date(Date.now() + 1000 * 60 * 10) : null, // 10 minutes
     },
   });
 
-  res.status(200).json({ ...amcatsession });
+  if (oauth) {
+    res
+      .status(200)
+      .json({ authCode: amcatsession.id + "." + amcatsession.secret, state });
+    return;
+  } else {
+    const user = await prisma.user.findFirst({ where: { id: userId } });
+    if (!user) return res.status(500).send("User doesn't exist");
+    await createTokens(res, req, amcatsession, user);
+  }
 }

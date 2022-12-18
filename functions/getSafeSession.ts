@@ -16,6 +16,7 @@ export default async function getSafeSession(
   if (!session?.user?.email) {
     return res.status(403).send("Need to be signed in");
   }
+
   // double check, because it seems that it can be (or used to be) more complicated.
   // But I assume getCsrfToken already checks the hash, so this should work.
   const token = await getCsrfToken({ req });
