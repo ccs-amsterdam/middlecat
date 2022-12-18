@@ -168,7 +168,12 @@ function ConfirmConnectRequest({
       <div className="ConnectionDetails">
         <div className="User">
           {user?.image ? (
-            <img className="Image" src={user.image} alt="" />
+            <img
+              className="Image"
+              src={user.image}
+              referrer-policy="no-referrer"
+              alt=""
+            />
           ) : (
             <FaUser className="MissingImage" />
           )}
