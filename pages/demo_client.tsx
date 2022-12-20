@@ -2,7 +2,7 @@ import useMiddlecat from "middlecat-react";
 import { useEffect, useState } from "react";
 
 export default function Demo() {
-  const { user, AuthForm } = useMiddlecat({ storeToken: true });
+  const { user, AuthForm } = useMiddlecat({ bff: "/api/bffAuth" });
   const [msg, setMsg] = useState("");
 
   useEffect(() => {

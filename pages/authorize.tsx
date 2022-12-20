@@ -49,7 +49,6 @@ function ConfirmConnectRequest({
   const router = useRouter();
 
   const q = router.query;
-
   if (
     !q.client_id ||
     !q.redirect_uri ||

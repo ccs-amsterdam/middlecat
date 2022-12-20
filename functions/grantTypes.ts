@@ -23,7 +23,7 @@ export async function authorizationCodeRequest(
   const [id, secret] = code.split(".");
 
   const session = await prisma.amcatSession.findFirst({
-    where: { id, secret, codeChallenge },
+    where: { id, secret },
     include: { user: true },
   });
 
@@ -32,8 +32,13 @@ export async function authorizationCodeRequest(
     return res.status(401).send({ message: "Invalid token request" });
   }
 
-  if (!session.secretExpires || session.secretExpires < new Date(Date.now())) {
+  if (
+    codeChallenge !== session.codeChallenge ||
+    !session.secretExpires ||
+    session.secretExpires < new Date(Date.now())
+  ) {
     // Reasons for deleting the session
+    // - if codeChallenge failed, auth code could be compromised
     // - If secret already used (no secretExpires), could be that bad actor was first
     // - If the secret expired, the session can never be started anyway
     await prisma.amcatSession.delete({
