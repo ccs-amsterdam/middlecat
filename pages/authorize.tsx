@@ -201,7 +201,7 @@ function ConfirmConnectRequest({
 
       <div className="ButtonGroup">
         <button onClick={() => signOut()}>Change user</button>
-        <button onClick={() => router.push("/")}>I did not request this</button>
+        <button onClick={() => router.push("/")}>Manage connections</button>
       </div>
     </div>
   );

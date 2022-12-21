@@ -31,7 +31,7 @@ export default function CreateApiKey({
     if (!container.current) return;
     const el = container.current;
     el.style.opacity = "0";
-    el.style.maxHeight = "6rem";
+    el.style.maxHeight = "10rem";
     el.style.background = "white";
     setTimeout(() => {
       el.style.opacity = "1";
@@ -56,6 +56,7 @@ export default function CreateApiKey({
           flex-direction: column;
           justify-content: center;
           align-items: center;
+          font-size: 2rem;
 
           overflow: auto;
           transition: all 0.5s;
@@ -200,9 +201,11 @@ function CreateKeyForm({
           max-width: 25rem;
         }
         label {
-          margin: 0.2rem;
+          margin: 0.5rem;
         }
         input {
+          margin-top: 0.5rem;
+          font-size: 1.5rem;
           width: 100%;
           padding: 0.5rem;
           border-radius: 5px;

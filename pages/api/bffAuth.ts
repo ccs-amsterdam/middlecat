@@ -1,9 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { bffAuthHandler } from "middlecat-react";
+import Cookies from "cookies";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  return await bffAuthHandler(req, res);
+  const cookies = new Cookies(req, res);
+  return await bffAuthHandler(req, res, cookies);
 }

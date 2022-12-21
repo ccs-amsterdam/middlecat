@@ -101,9 +101,11 @@ We recommend that AmCAT clients use a fullstack framework like NextJS. Next to o
 
 ```
 import { bffAuthHandler } from "middlecat-react";
+import Cookies from "cookies";
 
 export default async function handler(req, res) {
-  return await bffAuthHandler(req, res);
+  const cookies = new Cookies(req, res);
+  return await bffAuthHandler(req, res, cookies);
 }
 ```
 
