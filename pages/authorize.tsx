@@ -257,8 +257,11 @@ async function createAmcatSession({
   });
 
   const data = await res.json();
-  // our authentication code is the id + secret
-  return `${redirectUri}?code=${data.authCode}&state=${data.state}`;
+
+  const url = new URL(redirectUri);
+  url.searchParams.set("code", data.authCode);
+  url.searchParams.set("state", data.state);
+  return url.toString();
 }
 
 function asSingleString(stringOrArray: string | string[]): string {

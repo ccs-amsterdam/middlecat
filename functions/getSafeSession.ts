@@ -21,9 +21,9 @@ export default async function getSafeSession(
   // But I assume getCsrfToken already checks the hash, so this should work.
   const token = await getCsrfToken({ req });
   if (token !== req.body.csrfToken) {
+    console.log("Invalid csrf token", token, req.body.csrfToken);
     res.status(403).send("Invalid csrf token");
     return;
   }
-
   return session;
 }
