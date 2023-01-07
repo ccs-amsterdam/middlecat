@@ -144,7 +144,7 @@ function ConfirmConnectRequest({
   }
 
   const acceptToken = () => {
-    const label = createAmcatSession({
+    createAmcatSession({
       clientId: client_id,
       redirectUri: redirect_uri,
       resource,
@@ -154,12 +154,15 @@ function ConfirmConnectRequest({
       type,
       refreshRotate: refresh_rotate,
       expiresIn: expires_in,
-      csrfToken,
+      csrfToken: csrfToken,
     })
       .then((response_url) => {
         router.push(response_url);
       })
-      .catch((e) => console.error(e));
+      .catch((e) => {
+        router.reload(); // in case problem was csrf token
+        console.error(e);
+      });
   };
 
   return (

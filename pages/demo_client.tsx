@@ -23,7 +23,7 @@ export default function Demo() {
 
   return (
     <div className="Page">
-      <div className="Container">
+      <div className="Container" style={{ fontSize: "1rem" }}>
         <AuthForm resourceSuggestion="https://middlecat.up.railway.app/api/demo_resource" />
         <div style={{ color: "grey", textAlign: "center" }}>
           <p>{msg}</p>
