@@ -17,7 +17,7 @@
     "@types/jsonwebtoken": "^8.5.9",
     "cookies": "^0.8.0",
     "jsonwebtoken": "^8.5.1",
-    "middlecat-react": "^0.1.42",
+    "middlecat-react": "^0.1.43",
     "next": "latest",
     "next-auth": "latest",
     "nextjs-cors": "^2.1.2",

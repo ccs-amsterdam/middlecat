@@ -27,15 +27,16 @@ export default async function handler(
     scope,
     refreshRotate,
     expiresIn,
+    resource,
+    resourceConfig,
     oauth = true,
   } = req.body || {};
 
-  let { resource } = req.body || {};
-
-  if (!clientId || !resource || !label || !type) {
+  if (!clientId || !resource || !label || !type || !resourceConfig) {
     res.status(404).send("Invalid request");
     return;
   }
+
   if (oauth && (!codeChallenge || !state)) {
     // if oauth is false, the session is only created, and no secret/codechallenge will
     // be set, so that it cannot be activated with an authorization code request. If it's
@@ -48,22 +49,17 @@ export default async function handler(
     return;
   }
 
-  // check with the resource server. Here we could also implement more
-  // security measures, such as server indicating which browser clients to trust and
-  // whether api keys are allowed.
-  resource = resource.replace(/\/$/, ""); // standardize
-  try {
-    const config_res = await fetch(resource + "/middlecat");
-    const config = await config_res.json();
-    if (config.middlecat_url !== process.env.NEXTAUTH_URL) {
-      res
-        .status(404)
-        .send(`Server uses other Middlecat: ${config.middlecat_url}`);
-      return;
-    }
-  } catch (e) {
-    console.log(e);
+  if (!resourceConfig) {
+    // While this could also be retrieved here, we now require the config to be
+    // fetched client side. This way, it still works if the AmCAT resource is hosted local.
+    // The 404 message takes into account that the client did use getResourceConfig
     res.status(404).send("Could not connect to server");
+    return;
+  }
+  if (resourceConfig.middlecat_url !== process.env.NEXTAUTH_URL) {
+    res
+      .status(404)
+      .send(`Server uses other Middlecat: ${resourceConfig.middlecat_url}`);
     return;
   }
 
