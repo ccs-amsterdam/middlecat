@@ -1,4 +1,5 @@
 import { signIn, signOut, useSession, getCsrfToken } from "next-auth/react";
+import Head from "next/head";
 import AmcatSessions from "../components/AmcatSessions";
 
 interface Props {
@@ -11,6 +12,15 @@ export default function IndexPage({ csrfToken }: Props) {
 
   return (
     <>
+      <Head>
+        <title>MiddleCat</title>
+        <meta
+          name="description"
+          content="MiddleCat Authentication for AmCAT servers"
+        />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/amcat-logo.svg" />
+      </Head>
       <div>
         <div className="Container Narrow">
           <div className="Intro">

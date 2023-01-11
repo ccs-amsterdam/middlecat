@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import { Dispatch, SetStateAction, useRef, useState } from "react";
 import { FaClipboard, FaWindowClose } from "react-icons/fa";
 import { finished } from "stream";
@@ -125,9 +126,13 @@ function ShowAPIKey({ token, finish }: { token: string; finish: () => void }) {
         button {
           margin-top: 2rem;
         }
+        a {
+          color: var(--primary);
+        }
       `}</style>
-      <h4>Your new API Key</h4>
-      <p>You will only see it once, so copy it!</p>
+      <h4>Your new API Key*</h4>
+
+      <p>You will only see this once, so copy it!</p>
       <pre>{token}</pre>
       <div
         className="copy"
@@ -141,6 +146,19 @@ function ShowAPIKey({ token, finish }: { token: string; finish: () => void }) {
         <div>{copied ? "copied!" : "click to copy"}</div>
       </div>
       <button onClick={() => finish()}>Hide token</button>
+
+      <p>
+        *MiddleCat API keys are refresh tokens. If you are not using an existing
+        client, see{" "}
+        <a
+          href="https://github.com/ccs-amsterdam/middlecat#building-new-clients-r-python-etc"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          the docs
+        </a>
+        .
+      </p>
     </div>
   );
 }
