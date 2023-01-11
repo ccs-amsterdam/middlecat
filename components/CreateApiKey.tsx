@@ -164,7 +164,7 @@ function CreateKeyForm({
     const formData = new FormData(e.target);
 
     const expires = new Date(String(formData.get("expires_date") || ""));
-    const resource = formData.get("resource");
+    const resource = formData.get("resource") as string;
     const resourceConfig = await getResourceConfig(resource);
 
     const body = {

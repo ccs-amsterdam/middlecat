@@ -1,4 +1,5 @@
-export default async function getResourceConfig(url: string) {
+export default async function getResourceConfig(url: string | null) {
+  if (!url) return null;
   try {
     const resource = url.replace(/\/$/, ""); // standardize
     const config_res = await fetch(resource + "/middlecat");

@@ -161,8 +161,8 @@ function ConfirmConnectRequest({
         router.push(response_url);
       })
       .catch((e) => {
-        //router.reload(); // in case problem was csrf token
         console.error(e);
+        router.reload(); // harmless and refreshes csrf token (which is often the problem)
       });
   };
 
