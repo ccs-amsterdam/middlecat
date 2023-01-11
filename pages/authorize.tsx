@@ -2,6 +2,7 @@ import { getCsrfToken, signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { DefaultSession } from "next-auth";
 import { FaUser } from "react-icons/fa";
+import getResourceConfig from "../functions/getResourceConfig";
 
 interface Props {
   csrfToken: string | undefined;
@@ -160,7 +161,7 @@ function ConfirmConnectRequest({
         router.push(response_url);
       })
       .catch((e) => {
-        router.reload(); // in case problem was csrf token
+        //router.reload(); // in case problem was csrf token
         console.error(e);
       });
   };
@@ -247,6 +248,7 @@ async function createAmcatSession({
     body: JSON.stringify({
       clientId,
       resource,
+      resourceConfig: await getResourceConfig(resource),
       state,
       codeChallenge,
       scope,

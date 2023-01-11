@@ -2,6 +2,7 @@ import { Dispatch, SetStateAction, useRef, useState } from "react";
 import { FaClipboard, FaWindowClose } from "react-icons/fa";
 import { finished } from "stream";
 import copyToClipboard from "../functions/copyToClipboard";
+import getResourceConfig from "../functions/getResourceConfig";
 
 export default function CreateApiKey({
   csrfToken,
@@ -163,9 +164,13 @@ function CreateKeyForm({
     const formData = new FormData(e.target);
 
     const expires = new Date(String(formData.get("expires_date") || ""));
+    const resource = formData.get("resource");
+    const resourceConfig = await getResourceConfig(resource);
+
     const body = {
       csrfToken,
-      resource: formData.get("resource"),
+      resource,
+      resourceConfig,
       label: formData.get("label"),
       clientId: formData.get("label"),
       type: "apiKey",
