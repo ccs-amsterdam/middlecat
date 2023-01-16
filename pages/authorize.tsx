@@ -71,7 +71,7 @@ function ConfirmConnectRequest({
   const resource = asSingleString(q.resource);
   const scope = asSingleString(q.scope || "");
   const session_type = asSingleString(q.session_type || "");
-  const refresh_mode = asSingleString(q.session_type || "");
+  const refresh_mode = asSingleString(q.refresh_mode || "");
   const expires_in = q.expires_in_sec
     ? Number(asSingleString(q.expires_in_sec))
     : null;
