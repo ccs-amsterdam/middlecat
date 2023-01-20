@@ -26,9 +26,10 @@ export default function Demo() {
       <div className="Container" style={{ fontSize: "1rem" }}>
         <AuthForm resourceSuggestion="https://middlecat.up.railway.app/api/demo_resource" />
         <div style={{ color: "grey", textAlign: "center" }}>
-          <p>{msg}</p>
-          <p style={{ fontSize: "1.2rem" }}>
+          <p>{msg || "..."}</p>
+          <p style={{ fontSize: "1.2em" }}>
             {msg &&
+              msg !== "Unauthenticated" &&
               "token is automatically refreshed about 10 seconds before it expires"}
           </p>
         </div>

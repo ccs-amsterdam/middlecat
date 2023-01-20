@@ -17,6 +17,7 @@ export default async function handler(
   const protocol = /^localhost/.test(host) ? "http://" : "https://";
   const data = {
     middlecat_url: protocol + host,
+    authorization: "allow_guests", // "no_auth", "allow_guests", "allow_authenticated_guests", "authorized_users_only"
   };
 
   res.status(200).json(data);
