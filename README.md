@@ -62,7 +62,7 @@ EMAIL_FROM=MiddleCat <noreply@host.com>
 
 The server side of things is quite straightforward. You'll need to do the following:
 
-- Create a **[server-api]/middlecat** GET endpoint that returns a JSON object with (at least) a 'middlecat_url'. By providing this url, the server indicates that it trusts this MiddleCat server to sign it's access_tokens
+- Create a **[server-api]/config** GET endpoint that returns a JSON object with (at least) a 'middlecat_url'. By providing this url, the server indicates that it trusts this MiddleCat server to sign it's access_tokens
 - Obtain the **public_key** from this MiddleCat server. This can be obtained from **[middlecat]/api/configuration**, which returns a JSON object with (among other things) a **public_key**. The public key could change, so make sure to re-check routinely
 - Use the public key to validate tokens from authenticated users. Requests will have an **Authorization** header with the value: **Bearer [access_token]**
 - Also (!!) verify that the **resource** claim in the access_token is the current server. The resource (sometimes called **audience**) specifies the server for which the user authorized the client.
@@ -128,15 +128,15 @@ If you do not have a server, you can user a demo server thats included in Middle
 server = "https://middlecat.up.railway.app/api/demo_resource"
 ```
 
-To get the middlecat config, simply GET the middlecat endpoint.
+To get the server config, GET the config endpoint.
 
 ```
-middlecat_config = glue("{server}/middlecat") |>
+config = glue("{server}/config") |>
   request() |>
   req_perform() |>
   resp_body_json()
 
-middlecat = middlecat_config$middlecat_url
+middlecat = config$middlecat_url
 ```
 
 Now we can start the OAuth flow. The key information to provide is the
