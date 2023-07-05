@@ -37,6 +37,8 @@ export default async function handler(
     return;
   }
 
+  console.log(1);
+
   if (oauth && (!codeChallenge || !state)) {
     // if oauth is false, the session is only created, and no secret/codechallenge will
     // be set, so that it cannot be activated with an authorization code request. If it's
