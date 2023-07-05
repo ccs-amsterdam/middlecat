@@ -192,19 +192,13 @@ h3 {
 button {
   width: 100%;
   background: white;
+  color: black;
   border: 2px solid var(--primary);
   font-size: inherit;
   max-width: 400px;
   padding: 1rem 2rem;
   border-radius: 10px;
   transition: background 0.3s;
-}
-
-button:hover:enabled {
-  color: white;
-  cursor: pointer;
-
-  background: var(--primary);
 }
 
 .ButtonGroup {
@@ -298,7 +292,7 @@ button:hover:enabled {
   margin: auto;
   width: 100%;
   transition: background 0.2s;
-  background: var(--secondary);
+  background: transparent;
   color: white;
   font-weight: 900;
   cursor: pointer;
@@ -383,4 +377,36 @@ button:hover:enabled {
 }
 .AmcatSession button:hover {
   background: var(--primary);
+}
+
+button:hover:enabled {
+  color: white;
+  cursor: pointer;
+
+  background: var(--primary);
+}
+
+button:focus,
+button:focus:hover {
+  background: var(--secondary);
+  color: white;
+  cursor: pointer;
+}
+
+button.Loading {
+  position: relative;
+  pointer-events: none;
+}
+
+button.Loading::after {
+  content: "";
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  border: 10px solid #f3f3f3;
+  border-top: 10px solid var(--primary);
+  border-radius: 50%;
+  width: 10px;
+  height: 10px;
+  animation: spin 1s linear infinite;
 }

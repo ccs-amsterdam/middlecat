@@ -6,7 +6,7 @@ import {
   useSession,
 } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { FaEnvelope, FaGithub, FaGoogle } from "react-icons/fa";
 
 const logos: any = {
@@ -49,6 +49,7 @@ export default function SignIn({ providers, csrfToken }: Props) {
 
 function Providers({ providers, csrfToken }: Props) {
   if (!csrfToken) return null;
+  const [loading, setLoading] = useState("");
 
   return (
     <>
@@ -57,7 +58,13 @@ function Providers({ providers, csrfToken }: Props) {
         if (provider.type === "email") return null;
         return (
           <div className="Provider" key={provider.name}>
-            <button onClick={() => signIn(provider.id)}>
+            <button
+              className={loading === provider.name ? "Loading" : ""}
+              onClick={() => {
+                setLoading(provider.name);
+                signIn(provider.id).catch(() => setLoading(""));
+              }}
+            >
               <div className="Logo">{logos[provider.name]}</div>
               {provider.name}
             </button>
@@ -76,6 +83,7 @@ function Providers({ providers, csrfToken }: Props) {
 
 function EmailLogin({ csrfToken }: { csrfToken: string }) {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   return (
     <form
@@ -83,6 +91,10 @@ function EmailLogin({ csrfToken }: { csrfToken: string }) {
       className="PasswordForm"
       method="post"
       action="/api/auth/signin/email"
+      onSubmit={(e) => {
+        setLoading(true);
+        setTimeout(() => setLoading(false), 5000);
+      }}
     >
       <input name="csrfToken" type="hidden" defaultValue={csrfToken} />
       <div className="EmailInput">
@@ -94,7 +106,9 @@ function EmailLogin({ csrfToken }: { csrfToken: string }) {
           placeholder="example@email.com"
         />
       </div>
-      <button type="submit">Sign in with Email</button>
+      <button className={loading ? "Loading" : ""} type="submit">
+        Sign in with Email
+      </button>
     </form>
   );
 }

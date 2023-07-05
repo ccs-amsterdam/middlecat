@@ -1,6 +1,7 @@
 import { signIn, signOut, useSession, getCsrfToken } from "next-auth/react";
 import Head from "next/head";
 import AmcatSessions from "../components/AmcatSessions";
+import { useState } from "react";
 
 interface Props {
   csrfToken: string | undefined;
@@ -8,6 +9,7 @@ interface Props {
 
 export default function IndexPage({ csrfToken }: Props) {
   const { data: session, status } = useSession();
+  const [loading, setLoading] = useState(false);
   if (status === "loading") return null;
 
   return (
@@ -33,11 +35,27 @@ export default function IndexPage({ csrfToken }: Props) {
             <div className="Login">
               {session?.user ? (
                 <>
-                  <button onClick={() => signOut()}>sign out</button>
+                  <button
+                    className={loading ? "Loading" : ""}
+                    onClick={() => {
+                      setLoading(true);
+                      signOut().catch(() => setLoading(false));
+                    }}
+                  >
+                    sign out
+                  </button>
                 </>
               ) : (
                 <>
-                  <button onClick={() => signIn()}>sign in</button>
+                  <button
+                    className={loading ? "Loading" : ""}
+                    onClick={() => {
+                      setLoading(true);
+                      signIn().catch(() => setLoading(false));
+                    }}
+                  >
+                    sign in
+                  </button>
                 </>
               )}
             </div>
