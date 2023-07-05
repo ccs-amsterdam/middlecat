@@ -152,12 +152,12 @@ token_url = glue("{middlecat}/api/token")
 
 There are three main parameters/settings to set:
 
-- **client_id**. The client ID is free to choose, and will be the name of the application shown
-  to the user in the authentication flow. Since we support third-party clients, it is up to the user to determine whether they trust the authentication request (though we'll add ways for servers to indicate trusted clients).
+- **client_id**. The name of the application that is shown to the user in the authentication flow. If session_type is browser (the default) then this will automatically be set to the URL from which the request is made.
 - **pkce**. MiddleCat requires using PKCE with the (standard) base64url encoded sha256 hash. httr2 supports this out of the box.
 - **resource**. The call to auth_url should include the 'resource' parameter, which should be the
   URL of the AmCAT server.
-  **refresh = "static"**. This disables refresh token rotation, which does not yet seem to be supported by httr2.
+- **refresh = "static"** (optional). This disables refresh token rotation, which does not yet seem to be supported by httr2.
+- **session_type** (optional). Specify whether this is an "api_key" or "browser" session.
 
 ```
 client_id = 'Some R package'

@@ -104,6 +104,10 @@ h3 {
   max-width: 400px;
 }
 
+.TextCenter {
+  text-align: center;
+}
+
 .Page .Title {
   color: var(--secondary);
   font-size: 3.5rem;
@@ -217,7 +221,7 @@ button:hover:enabled {
 .Loader {
   margin: auto;
   border: 10px solid #f3f3f3;
-  border-top: 10px solid #3498db;
+  border-top: 10px solid var(--primary);
   border-radius: 50%;
   width: 80px;
   height: 80px;

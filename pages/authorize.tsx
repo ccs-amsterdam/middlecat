@@ -50,21 +50,7 @@ function ConfirmConnectRequest({
   const router = useRouter();
 
   const q = router.query;
-  if (
-    !q.client_id ||
-    !q.redirect_uri ||
-    !q.state ||
-    !q.code_challenge ||
-    !q.resource ||
-    (q.session_type &&
-      !["api_key", "browser"].includes(asSingleString(q.session_type))) ||
-    (q.refresh_mode &&
-      !["static", "rotate"].includes(asSingleString(q.refresh_mode)))
-  ) {
-    return <div style={{ textAlign: "center" }}>Invalid request</div>;
-  }
-
-  const client_id = asSingleString(q.client_id);
+  let client_id = asSingleString(q.client_id);
   const redirect_uri = asSingleString(q.redirect_uri);
   const state = asSingleString(q.state);
   const code_challenge = asSingleString(q.code_challenge);
@@ -78,56 +64,38 @@ function ConfirmConnectRequest({
 
   const clientURL = new URL(redirect_uri);
   const serverURL = new URL(resource);
+
   const type = session_type === "api_key" ? "apiKey" : "browser";
   const refresh_rotate = refresh_mode !== "static";
-  const localhost = /^localhost/.test(clientURL.host);
 
-  // api_key session have more freedom to specify settings,
-  // but this is only allowed if requested from localhost
-  if (!localhost && type === "apiKey") {
-    return (
-      <InvalidRequestMsg>
-        An API key can only be created via OAuth if the redirect_uri is on
-        localhost. Note that you can also create API keys manually on the
-        MiddleCat website.
-      </InvalidRequestMsg>
-    );
+  if (!redirect_uri)
+    return <InvalidRequestMsg>Redirect URI is missing</InvalidRequestMsg>;
+  if (!state) return <InvalidRequestMsg>State is missing</InvalidRequestMsg>;
+  if (!code_challenge)
+    return <InvalidRequestMsg>Code challenge is missing</InvalidRequestMsg>;
+  if (!resource)
+    return <InvalidRequestMsg>Resource is missing</InvalidRequestMsg>;
+
+  if (!client_id) {
+    if (type === "apiKey")
+      return (
+        <InvalidRequestMsg>
+          API key request requires client id
+        </InvalidRequestMsg>
+      );
+    client_id = clientURL.host;
   }
 
   const clientLabel = client_id;
+  const localhost = /^localhost/.test(clientURL.host);
   let clientNote = "";
-  if (type === "apiKey") {
-    // When client is localhost, the given client ID will be shown together
-    // with the notification that an application on the user's own device wants to connect
-    clientNote = `This is an application running on your own device. The name (${clientLabel}) is
-      set by this application, and we cannot verify its legitimacy. Only authorize if you were
-      using and trust this application`;
+  if (localhost) {
+    clientNote = `This authorization request comes from your own device, so we cannot verify its legitimacy. Only authorize if you yourself initiated this authorization request.`;
   } else {
-    // if type === 'browser'
-    if (client_id !== clientURL.host) {
-      // for browserSessions, the clientID must be identical to
-      // the client host as based on the redirect_uri. This is so at
-      // some point we can still decide to use client id. The link between
-      // client id and redirect_uri is important because the client id
-      // is shown to users to authorize, and should not be fake-able.
+    clientNote = `${clientLabel} is an unregistered web application. Only authorize if you know and trust this website.`;
+  }
 
-      if (localhost)
-        return (
-          <InvalidRequestMsg>
-            No <b>session_type</b> was specified, so it defaults to "browser".
-            For a browser session the client_id needs to be identical to the
-            origin of the redirect_uri. To create an API key, set{" "}
-            <b>session_type=api_key</b>. (this is only possible for localhost
-            clients)
-          </InvalidRequestMsg>
-        );
-      return (
-        <InvalidRequestMsg>
-          For browser sessions the client_id must be identical to the origin of
-          the redirect_uri.
-        </InvalidRequestMsg>
-      );
-    }
+  if (type === "browser") {
     if (!refresh_rotate)
       return (
         <InvalidRequestMsg>
@@ -140,8 +108,6 @@ function ConfirmConnectRequest({
           Browser sessions cannot set custom expire_in time
         </InvalidRequestMsg>
       );
-    clientNote = `This is a web application. Any website can access your account on AmCAT servers
-    if you let them. Only authorize if you were using and trust this website.`;
   }
 
   const acceptToken = () => {
@@ -269,8 +235,9 @@ async function createAmcatSession({
   return url.toString();
 }
 
-function asSingleString(stringOrArray: string | string[]): string {
+function asSingleString(stringOrArray: string | string[] | undefined): string {
   // url parameters are string | string[].
+  if (!stringOrArray) return "";
   return Array.isArray(stringOrArray) ? stringOrArray[0] : stringOrArray;
 }
 

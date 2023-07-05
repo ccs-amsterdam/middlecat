@@ -41,7 +41,8 @@ export default function AmcatSessions({ session, csrfToken }: props) {
     fetchSessions();
   }, [session]);
 
-  if (!sessionData) return null;
+  if (!sessionData)
+    return <div className="Loader" style={{ marginTop: "5rem" }} />;
 
   return (
     <div className="SessionData">
