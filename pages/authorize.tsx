@@ -132,7 +132,7 @@ function ConfirmConnectRequest({
       .catch((e) => {
         console.error(e);
         setLoading(false);
-        router.reload(); // harmless and refreshes csrf token (which is often the problem)
+        //router.reload(); // harmless and refreshes csrf token (which is often the problem)
       });
   };
 
