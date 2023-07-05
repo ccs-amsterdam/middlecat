@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { DefaultSession } from "next-auth";
 import { FaUser } from "react-icons/fa";
 import getResourceConfig from "../functions/getResourceConfig";
+import { useState } from "react";
 
 interface Props {
   csrfToken: string | undefined;
@@ -48,6 +49,7 @@ function ConfirmConnectRequest({
 }: ConfirmConnectRequestProps) {
   const user = session.user;
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   const q = router.query;
   let client_id = asSingleString(q.client_id);
@@ -111,6 +113,7 @@ function ConfirmConnectRequest({
   }
 
   const acceptToken = () => {
+    setLoading(true);
     createAmcatSession({
       clientId: client_id,
       redirectUri: redirect_uri,
@@ -128,6 +131,7 @@ function ConfirmConnectRequest({
       })
       .catch((e) => {
         console.error(e);
+        setLoading(false);
         router.reload(); // harmless and refreshes csrf token (which is often the problem)
       });
   };
@@ -165,7 +169,9 @@ function ConfirmConnectRequest({
         </div>
       </div>
       <div className="ConnectionContainer" onClick={acceptToken}>
-        <div className="Connection">Authorize</div>
+        <div className={`Connection ${loading ? "Loading" : ""}`}>
+          Authorize
+        </div>
         <p className="ClientNote">* {clientNote}</p>
       </div>
 

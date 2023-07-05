@@ -292,7 +292,7 @@ button {
   margin: auto;
   width: 100%;
   transition: background 0.2s;
-  background: transparent;
+  background: var(--secondary);
   color: white;
   font-weight: 900;
   cursor: pointer;
@@ -393,12 +393,12 @@ button:focus:hover {
   cursor: pointer;
 } */
 
-button.Loading {
+.Loading {
   position: relative;
   pointer-events: none;
 }
 
-button.Loading::after {
+.Loading::after {
   content: "";
   position: absolute;
   top: 0.5rem;
