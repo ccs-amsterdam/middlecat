@@ -386,12 +386,12 @@ button:hover:enabled {
   background: var(--primary);
 }
 
-button:focus,
+/* button:focus,
 button:focus:hover {
   background: var(--secondary);
   color: white;
   cursor: pointer;
-}
+} */
 
 button.Loading {
   position: relative;
