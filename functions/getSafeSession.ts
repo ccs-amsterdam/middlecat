@@ -1,5 +1,5 @@
+import { createHash } from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getCsrfToken } from "next-auth/react";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "../pages/api/auth/[...nextauth]";
@@ -17,16 +17,39 @@ export default async function getSafeSession(
     return res.status(403).send("Need to be signed in");
   }
 
-  // console.log("-0000000000");
-  // console.log(req);
-  // const token = await getCsrfToken({ req });
-  // console.log("-1111111111");
-  // console.log(req.body.csrfToken);
-  // console.log(token);
-  // if (token !== req.body.csrfToken) {
-  //   console.log("Invalid csrf token", token, req.body.csrfToken);
-  //   res.status(403).send("Invalid csrf token");
-  //   return;
-  // }
+  let csrfValidated = false;
+  try {
+    csrfValidated = await verifyCsrf(req, res);
+  } catch (e) {
+    console.log("error", e);
+  }
+
+  if (!csrfValidated) {
+    res.status(403).send("Invalid csrf token");
+    return;
+  }
+
   return session;
+}
+
+function verifyCsrf(req: NextApiRequest, res: NextApiResponse): boolean {
+  if (!req.headers.cookie) return false;
+  for (let cookie of req.headers.cookie.split(";")) {
+    const isCsrf = cookie.trim().includes("next-auth.csrf-token");
+    if (!isCsrf) continue;
+
+    const cleanCookie = cookie.split("=")[1].trim();
+    const [token, hash] = cleanCookie.split("%7C");
+
+    // verify csrf token was not forged
+    const secret = process.env.NEXTAUTH_SECRET;
+    const validHash = createHash("sha256")
+      .update(`${token}${secret}`)
+      .digest("hex");
+    if (!validHash === hash) return false;
+
+    // verify csrf token matches
+    return token === req.body.csrfToken;
+  }
+  return false;
 }

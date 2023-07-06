@@ -233,6 +233,10 @@ async function createAmcatSession({
     }),
   });
 
+  if (!res.ok) {
+    console.error(res.status, res.statusText);
+    throw new Error("Failed to create session");
+  }
   const data = await res.json();
 
   const url = new URL(redirectUri);

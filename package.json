@@ -7,7 +7,8 @@
     "dev": "next",
     "build": "next build",
     "start": "next start",
-    "migrate": "npx prisma migrate dev"
+    "migrate": "npx prisma migrate dev",
+    "secrets": "node ./scripts/generateSecrets.mjs"
   },
   "author": "Kasper Welbers <kasperwelbers@gmail.com>",
   "dependencies": {
@@ -17,7 +18,7 @@
     "@types/jsonwebtoken": "^8.5.9",
     "cookies": "^0.8.0",
     "jsonwebtoken": "^9.0.0",
-    "middlecat-react": "^0.1.48",
+    "middlecat-react": "^0.2.1",
     "next": "latest",
     "next-auth": "latest",
     "nextjs-cors": "^2.1.2",

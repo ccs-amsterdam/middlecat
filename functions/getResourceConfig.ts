@@ -6,6 +6,7 @@ export default async function getResourceConfig(url: string | null) {
     const config = await config_res.json();
     return config;
   } catch (e) {
+    console.error(e);
     return null;
   }
 }
