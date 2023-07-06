@@ -46,7 +46,7 @@ function verifyCsrf(req: NextApiRequest, res: NextApiResponse): boolean {
     const validHash = createHash("sha256")
       .update(`${token}${secret}`)
       .digest("hex");
-    if (!validHash === hash) return false;
+    if (validHash !== hash) return false;
 
     // verify csrf token matches
     return token === req.body.csrfToken;
