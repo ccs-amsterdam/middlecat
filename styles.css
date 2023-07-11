@@ -56,17 +56,18 @@ h4 {
 }
 
 .Header {
-  padding: 1rem;
+  padding: 2rem;
   text-align: center;
+  vertical-align: middle;
   position: relative;
 }
 
 .Header h2,
 h3 {
-  font-size: 4.5rem;
+  font-size: 5rem;
   font-weight: 900;
   margin-bottom: 0px;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
   line-height: 3.5rem;
 }
 
