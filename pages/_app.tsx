@@ -4,7 +4,7 @@ import type { AppProps } from "next/app";
 import type { Session } from "next-auth";
 import "../styles.css";
 
-import { Poppins } from "@next/font/google";
+import { Poppins } from "next/font/google";
 import Header from "../components/Header";
 
 const font = Poppins({

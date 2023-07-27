@@ -13,12 +13,11 @@
   "author": "Kasper Welbers <kasperwelbers@gmail.com>",
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.5",
-    "@next/font": "^13.0.6",
     "@prisma/client": "^4.6.1",
     "@types/jsonwebtoken": "^8.5.9",
     "cookies": "^0.8.0",
     "jsonwebtoken": "^9.0.0",
-    "middlecat-react": "^0.2.1",
+    "middlecat-react": "^0.3.6",
     "next": "latest",
     "next-auth": "latest",
     "nextjs-cors": "^2.1.2",

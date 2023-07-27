@@ -1,8 +1,16 @@
-import useMiddlecat from "middlecat-react";
+import { useMiddlecat, AuthForm, MiddlecatProvider } from "middlecat-react";
 import { useEffect, useState } from "react";
 
 export default function Demo() {
-  const { user, AuthForm } = useMiddlecat({ bff: "/api/bffAuth" });
+  return (
+    <MiddlecatProvider bff="/api/bffAuth">
+      <DemoComponent />
+    </MiddlecatProvider>
+  );
+}
+
+function DemoComponent() {
+  const { user } = useMiddlecat();
   const [msg, setMsg] = useState("");
 
   useEffect(() => {
