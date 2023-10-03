@@ -191,6 +191,7 @@ function CreateKeyForm({
       resourceConfig,
       label: formData.get("label"),
       clientId: formData.get("label"),
+      refreshRotate: !!formData.get("rotating"),
       type: "apiKey",
       oauth: false,
       expiresIn: Math.floor((expires.getTime() - Date.now()) / 1000),

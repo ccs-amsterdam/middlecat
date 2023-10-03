@@ -75,6 +75,7 @@ export async function refreshTokenRequest(
     },
   });
 
+
   if (!arf) {
     return res.status(401).send({ message: "Invalid refreshtoken request" });
   }
@@ -145,8 +146,8 @@ export async function createTokens(
 
   // expire access tokens
   // (exp seems to commonly be in seconds)
-  const exp =
-    Math.floor(Date.now() / 1000) + 60 * settings.access_expire_minutes;
+  const expireMinutes = getExpireMinutes(session.type);
+  const exp = Math.floor(Date.now() / 1000) + 60 * expireMinutes;
 
   const access_token = createAccessToken({
     clientId,
@@ -171,7 +172,7 @@ export async function createTokens(
 
   // oauth typically uses expires_in in seconds as a relative offset (due to local time issues).
   // we subtract 5 seconds because of possible delay in setting expires_in and the client receiving it
-  const expires_in = settings.access_expire_minutes * 60 - 5;
+  const expires_in = expireMinutes * 60 - 5;
 
   res.status(200).json({
     token_type: "bearer",
@@ -181,6 +182,17 @@ export async function createTokens(
     expires_in,
   });
 }
+
+const getExpireMinutes = function getExpireMinutes(sessionType: string) {
+  switch (sessionType) {
+    case "browser":
+      return settings.access_expire_minutes_browser;
+    case "apiKey":
+      return settings.access_expire_minutes_api;
+    default:
+      return settings.access_expire_minutes_browser;
+  }
+};
 
 export async function killSessionRequest(
   res: NextApiResponse,
