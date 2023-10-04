@@ -6,6 +6,7 @@ import GoogleProvider from "next-auth/providers/google";
 import GithubProvider from "next-auth/providers/github";
 import EmailProvider from "next-auth/providers/email";
 import { NextApiRequest, NextApiResponse } from "next";
+import { SurfConextProvider } from "../../../functions/providers";
 
 export default async function auth(req: NextApiRequest, res: NextApiResponse) {
   return await NextAuth(req, res, authOptions);
@@ -34,6 +35,10 @@ export const authOptions: NextAuthOptions = {
     EmailProvider({
       server: process.env.EMAIL_SERVER,
       from: process.env.EMAIL_FROM,
+    }),
+    SurfConextProvider({
+      clientId: process.env.SURF_ID,
+      clientSecret: process.env.SURF_SECRET,
     }),
   ],
   theme: {
