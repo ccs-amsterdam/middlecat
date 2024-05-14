@@ -9,16 +9,13 @@ import Header from "../components/Header";
 
 const font = Poppins({
   weight: "500",
-  subsets: ["devanagari"],
+  subsets: ["latin"],
   display: "swap",
 });
 
 // Use of the <SessionProvider> is mandatory to allow components that call
 // `useSession()` anywhere in your application to access the `session` object.
-export default function App({
-  Component,
-  pageProps: { session, ...pageProps },
-}: AppProps<{ session: Session }>) {
+export default function App({ Component, pageProps: { session, ...pageProps } }: AppProps<{ session: Session }>) {
   return (
     <>
       <style jsx global>{`
