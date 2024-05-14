@@ -11,10 +11,7 @@ import { createTokens } from "../../functions/grantTypes";
  * if oauth is true, returns the authCode and state.
  * Otherwise, immediately returns the tokens
  */
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSafeSession(req, res);
   if (!session?.id) return res.status(500);
 
@@ -28,11 +25,10 @@ export default async function handler(
     refreshRotate,
     expiresIn,
     resource,
-    resourceConfig,
     oauth = true,
   } = req.body || {};
 
-  if (!clientId || !resource || !label || !type || !resourceConfig) {
+  if (!clientId || !resource || !label || !type) {
     res.status(404).send("Invalid request");
     return;
   }
@@ -49,20 +45,21 @@ export default async function handler(
     return;
   }
 
-  if (!resourceConfig) {
-    // While this could also be retrieved here, we now require the config to be
-    // fetched client side. This way, it still works if the AmCAT resource is hosted local.
-    // The 404 message takes into account that the client did use getResourceConfig
-    res.status(404).send("Could not connect to server");
-    return;
-  }
-
-  if (resourceConfig.middlecat_url !== process.env.NEXTAUTH_URL) {
-    res
-      .status(404)
-      .send(`Server uses other Middlecat: ${resourceConfig.middlecat_url}`);
-    return;
-  }
+  // DISABLED TO ALLOW MIDDLECAT TO SIGN TOKENS FOR SERVERS BEHIND A FIREWALL
+  //
+  // if (!resourceConfig) {
+  //   // While this could also be retrieved here, we now require the config to be
+  //   // fetched client side. This way, it still works if the AmCAT resource is hosted local.
+  //   // The 404 message takes into account that the client did use getResourceConfig
+  //   res.status(404).send("Could not connect to server");
+  //   return;
+  // }
+  // if (resourceConfig.middlecat_url !== process.env.NEXTAUTH_URL) {
+  //   res
+  //     .status(404)
+  //     .send(`Server uses other Middlecat: ${resourceConfig.middlecat_url}`);
+  //   return;
+  // }
 
   // The relation between Middlecat session and AmCAT sessions serves to
   // disconnect the AmCAT sessions when a user signs out from MiddleCat.
@@ -76,9 +73,7 @@ export default async function handler(
       ? new Date(Date.now() + 1000 * 60 * 60 * settings.session_expire_hours)
       : new Date(Date.now() + 1000 * expiresIn);
   const refreshExpires =
-    type === "browser"
-      ? new Date(Date.now() + 1000 * 60 * 60 * settings.refresh_expire_hours)
-      : null;
+    type === "browser" ? new Date(Date.now() + 1000 * 60 * 60 * settings.refresh_expire_hours) : null;
 
   // finally, create the new session
   const amcatsession = await prisma.amcatSession.create({
@@ -101,9 +96,7 @@ export default async function handler(
   });
 
   if (oauth) {
-    res
-      .status(200)
-      .json({ authCode: amcatsession.id + "." + amcatsession.secret, state });
+    res.status(200).json({ authCode: amcatsession.id + "." + amcatsession.secret, state });
     return;
   } else {
     const user = await prisma.user.findFirst({ where: { id: userId } });

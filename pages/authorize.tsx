@@ -22,11 +22,7 @@ export default function Connect({ csrfToken }: Props) {
   //if (!session?.user) return null;
   return (
     <div className="Container Narrow">
-      {!session ? (
-        <div className="Loader" />
-      ) : (
-        <ConfirmConnectRequest session={session} csrfToken={csrfToken} />
-      )}
+      {!session ? <div className="Loader" /> : <ConfirmConnectRequest session={session} csrfToken={csrfToken} />}
     </div>
   );
 }
@@ -43,10 +39,7 @@ interface ConfirmConnectRequestProps {
   csrfToken: string | undefined;
 }
 
-function ConfirmConnectRequest({
-  session,
-  csrfToken,
-}: ConfirmConnectRequestProps) {
+function ConfirmConnectRequest({ session, csrfToken }: ConfirmConnectRequestProps) {
   const user = session.user;
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -60,9 +53,7 @@ function ConfirmConnectRequest({
   const scope = asSingleString(q.scope || "");
   const session_type = asSingleString(q.session_type || "");
   const refresh_mode = asSingleString(q.refresh_mode || "");
-  const expires_in = q.expires_in_sec
-    ? Number(asSingleString(q.expires_in_sec))
-    : null;
+  const expires_in = q.expires_in_sec ? Number(asSingleString(q.expires_in_sec)) : null;
 
   const clientURL = new URL(redirect_uri);
   const serverURL = new URL(resource);
@@ -70,21 +61,13 @@ function ConfirmConnectRequest({
   const type = session_type === "api_key" ? "apiKey" : "browser";
   const refresh_rotate = refresh_mode !== "static";
 
-  if (!redirect_uri)
-    return <InvalidRequestMsg>Redirect URI is missing</InvalidRequestMsg>;
+  if (!redirect_uri) return <InvalidRequestMsg>Redirect URI is missing</InvalidRequestMsg>;
   if (!state) return <InvalidRequestMsg>State is missing</InvalidRequestMsg>;
-  if (!code_challenge)
-    return <InvalidRequestMsg>Code challenge is missing</InvalidRequestMsg>;
-  if (!resource)
-    return <InvalidRequestMsg>Resource is missing</InvalidRequestMsg>;
+  if (!code_challenge) return <InvalidRequestMsg>Code challenge is missing</InvalidRequestMsg>;
+  if (!resource) return <InvalidRequestMsg>Resource is missing</InvalidRequestMsg>;
 
   if (!client_id) {
-    if (type === "apiKey")
-      return (
-        <InvalidRequestMsg>
-          API key request requires client id
-        </InvalidRequestMsg>
-      );
+    if (type === "apiKey") return <InvalidRequestMsg>API key request requires client id</InvalidRequestMsg>;
     client_id = clientURL.host;
   }
 
@@ -99,17 +82,8 @@ function ConfirmConnectRequest({
 
   if (type === "browser") {
     if (!refresh_rotate)
-      return (
-        <InvalidRequestMsg>
-          Browser sessions cannot disable refresh token rotation.
-        </InvalidRequestMsg>
-      );
-    if (expires_in)
-      return (
-        <InvalidRequestMsg>
-          Browser sessions cannot set custom expire_in time
-        </InvalidRequestMsg>
-      );
+      return <InvalidRequestMsg>Browser sessions cannot disable refresh token rotation.</InvalidRequestMsg>;
+    if (expires_in) return <InvalidRequestMsg>Browser sessions cannot set custom expire_in time</InvalidRequestMsg>;
   }
 
   const acceptToken = () => {
@@ -141,12 +115,7 @@ function ConfirmConnectRequest({
       <div className="ConnectionDetails">
         <div className="User">
           {user?.image ? (
-            <img
-              className="Image"
-              src={user.image}
-              referrer-policy="no-referrer"
-              alt=""
-            />
+            <img className="Image" src={user.image} referrer-policy="no-referrer" alt="" />
           ) : (
             <FaUser className="MissingImage" />
           )}
@@ -163,15 +132,11 @@ function ConfirmConnectRequest({
         <div className="ConfirmMessage">
           The application <b className="SecondaryColor">{clientLabel}</b>*
           <br /> wants to connect to server <br />
-          <b className="SecondaryColor">
-            {serverURL.host + serverURL.pathname}
-          </b>{" "}
+          <b className="SecondaryColor">{serverURL.host + serverURL.pathname}</b>{" "}
         </div>
       </div>
       <div className="ConnectionContainer" onClick={acceptToken}>
-        <div className={`Connection ${loading ? "Loading" : ""}`}>
-          Authorize
-        </div>
+        <div className={`Connection ${loading ? "Loading" : ""}`}>Authorize</div>
         <p className="ClientNote">* {clientNote}</p>
       </div>
 
@@ -220,7 +185,6 @@ async function createAmcatSession({
     body: JSON.stringify({
       clientId,
       resource,
-      resourceConfig: await getResourceConfig(resource),
       state,
       codeChallenge,
       scope,

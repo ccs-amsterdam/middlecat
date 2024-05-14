@@ -5,13 +5,7 @@ import { finished } from "stream";
 import copyToClipboard from "../functions/copyToClipboard";
 import getResourceConfig from "../functions/getResourceConfig";
 
-export default function CreateApiKey({
-  csrfToken,
-  fetchSessions,
-}: {
-  csrfToken: string;
-  fetchSessions: () => void;
-}) {
+export default function CreateApiKey({ csrfToken, fetchSessions }: { csrfToken: string; fetchSessions: () => void }) {
   const container = useRef<HTMLDivElement>(null);
   const [started, setStarted] = useState(false);
   const [token, setToken] = useState<string>();
@@ -73,11 +67,7 @@ export default function CreateApiKey({
       {!started ? (
         <button onClick={() => start()}>Create new key</button>
       ) : !token ? (
-        <CreateKeyForm
-          csrfToken={csrfToken}
-          createdToken={createdToken}
-          finish={finish}
-        />
+        <CreateKeyForm csrfToken={csrfToken} createdToken={createdToken} finish={finish} />
       ) : (
         <ShowAPIKey token={token} finish={finish} />
       )}
@@ -148,8 +138,7 @@ function ShowAPIKey({ token, finish }: { token: string; finish: () => void }) {
       <button onClick={() => finish()}>Hide token</button>
 
       <p>
-        *MiddleCat API keys are refresh tokens. If you are not using an existing
-        client, see{" "}
+        *MiddleCat API keys are refresh tokens. If you are not using an existing client, see{" "}
         <a
           href="https://github.com/ccs-amsterdam/middlecat#building-new-clients-r-python-etc"
           target="_blank"
@@ -183,12 +172,11 @@ function CreateKeyForm({
 
     const expires = new Date(String(formData.get("expires_date") || ""));
     const resource = formData.get("resource") as string;
-    const resourceConfig = await getResourceConfig(resource);
+    // const resourceConfig = await getResourceConfig(resource);
 
     const body = {
       csrfToken,
       resource,
-      resourceConfig,
       label: formData.get("label"),
       clientId: formData.get("label"),
       refreshRotate: !!formData.get("rotating"),
